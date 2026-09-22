@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VOXORA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Kufi+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+:root{
+  --ink:#12161C; --surface:#F3F5F7; --card:#FFFFFF; --border:#E1E5EA;
+  --text:#12161C; --muted:#667085; --muted-2:#98A1AE;
+  --accent:#0E7C79; --accent-ink:#08514F; --accent-soft:#E4F3F1;
+  --success:#1F8B5C; --success-soft:#E6F5EC;
+  --warning:#B4780F; --warning-soft:#FBF0DE;
+  --danger:#C2412E; --danger-soft:#FBE9E6;
+  --radius-s:8px; --radius-m:14px; --radius-l:20px;
+  --shadow:0 1px 2px rgba(18,22,28,.04);
+  color-scheme: light;
+}
+:root:not([data-theme="light"]) { }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#F3F5F7; --surface:#0B0D11; --card:#151920; --border:#252B34;
+    --text:#F3F5F7; --muted:#9AA3B2; --muted-2:#6E7684;
+    --accent:#22A79E; --accent-ink:#8FE0D6; --accent-soft:#132723;
+    --success:#3FBE84; --success-soft:#0F241B;
+    --warning:#E0A73E; --warning-soft:#2A2013;
+    --danger:#E2685A; --danger-soft:#2A1512;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#F3F5F7; --surface:#0B0D11; --card:#151920; --border:#252B34;
+  --text:#F3F5F7; --muted:#9AA3B2; --muted-2:#6E7684;
+  --accent:#22A79E; --accent-ink:#8FE0D6; --accent-soft:#132723;
+  --success:#3FBE84; --success-soft:#0F241B;
+  --warning:#E0A73E; --warning-soft:#2A2013;
+  --danger:#E2685A; --danger-soft:#2A1512;
+  color-scheme: dark;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--surface); color:var(--text);
+  font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  font-variant-numeric:tabular-nums;
+  min-height:100vh;
+}
+[dir="rtl"] body{ font-family:'Noto Kufi Arabic','Inter',system-ui,sans-serif; }
+.app{ max-width:480px; margin:0 auto; min-height:100vh; background:var(--surface); position:relative; display:flex; flex-direction:column; }
+.scroll-area{ flex:1; overflow-x:hidden; padding-bottom:86px; }
+img,svg{max-width:100%;}
+button{font-family:inherit;}
+a{color:inherit;}
+
+/* ---------- Header ---------- */
+.topbar{ position:sticky; top:0; z-index:20; background:var(--surface); padding:18px 20px 10px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.topbar h1{ font-size:20px; font-weight:700; margin:0; letter-spacing:-0.01em; }
+.topbar .back{ display:flex; align-items:center; gap:10px; }
+.icon-btn{ width:36px; height:36px; border-radius:10px; border:1px solid var(--border); background:var(--card); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); flex:none; }
+.icon-btn:active{ transform:scale(0.96); }
+
+/* ---------- Bottom nav ---------- */
+.tabbar{ position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; background:var(--card); border-top:1px solid var(--border); display:flex; padding:8px 6px calc(8px + env(safe-area-inset-bottom)); z-index:30; }
+.tab{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:6px 2px; border-radius:10px; cursor:pointer; color:var(--muted-2); background:none; border:none; }
+.tab.active{ color:var(--accent); }
+.tab span.label{ font-size:10.5px; font-weight:600; }
+.tab svg{ width:22px; height:22px; }
+
+/* ---------- Generic ---------- */
+.px{ padding-left:20px; padding-right:20px; }
+.section-title{ font-size:13px; font-weight:700; color:var(--muted); text-transform:none; margin:22px 20px 10px; letter-spacing:0; }
+.card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius-m); padding:16px; box-shadow:var(--shadow); }
+.stack{ display:flex; flex-direction:column; gap:12px; padding:0 20px; }
+.row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.row + .row{ margin-top:10px; }
+.muted{ color:var(--muted); }
+.small{ font-size:12.5px; }
+.big-num{ font-size:30px; font-weight:800; letter-spacing:-0.02em; }
+.badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:100px; font-size:12px; font-weight:600; }
+.badge.success{ background:var(--success-soft); color:var(--success); }
+.badge.warning{ background:var(--warning-soft); color:var(--warning); }
+.badge.danger{ background:var(--danger-soft); color:var(--danger); }
+.badge.neutral{ background:var(--surface); color:var(--muted); border:1px solid var(--border); }
+.dot{ width:7px; height:7px; border-radius:50%; background:currentColor; flex:none; }
+
+.btn{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:14px 16px; border-radius:var(--radius-s); font-weight:700; font-size:15px; border:1px solid transparent; cursor:pointer; }
+.btn:active{ transform:scale(0.985); }
+.btn-primary{ background:var(--accent); color:#fff; }
+.btn-secondary{ background:var(--card); color:var(--text); border-color:var(--border); }
+.btn-ghost{ background:transparent; color:var(--accent); }
+.btn-danger{ background:transparent; color:var(--danger); border-color:var(--danger-soft); }
+.btn-sm{ padding:9px 14px; font-size:13px; width:auto; }
+
+.field{ display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+.field label{ font-size:12.5px; font-weight:600; color:var(--muted); }
+.field input, .field select, .field textarea{
+  border:1px solid var(--border); background:var(--card); color:var(--text);
+  border-radius:var(--radius-s); padding:12px 13px; font-size:14.5px; font-family:inherit; width:100%;
+}
+.field textarea{ resize:vertical; min-height:80px; line-height:1.5; }
+.field input:focus, .field select:focus, .field textarea:focus{ outline:2px solid var(--accent); outline-offset:0; }
+.hint{ font-size:12px; color:var(--muted-2); }
+.chip-row{ display:flex; flex-wrap:wrap; gap:8px; }
+.chip{ padding:8px 13px; border-radius:100px; border:1px solid var(--border); font-size:13px; font-weight:600; background:var(--card); color:var(--text); cursor:pointer; }
+.chip.on{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent-ink); }
+.switch{ position:relative; width:44px; height:26px; border-radius:100px; background:var(--border); flex:none; cursor:pointer; transition:.15s; }
+.switch.on{ background:var(--accent); }
+.switch .knob{ position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:.15s; }
+[dir="rtl"] .switch .knob{ left:auto; right:3px; }
+.switch.on .knob{ left:21px; }
+[dir="rtl"] .switch.on .knob{ left:auto; right:21px; }
+
+.empty{ text-align:center; padding:44px 24px; display:flex; flex-direction:column; align-items:center; gap:10px; }
+.empty .icon{ width:52px; height:52px; border-radius:16px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; margin-bottom:4px; }
+.empty h3{ margin:0; font-size:15.5px; font-weight:700; }
+.empty p{ margin:0; color:var(--muted); font-size:13.5px; max-width:280px; line-height:1.5; }
+
+.list-item{ display:flex; align-items:center; gap:12px; padding:14px 16px; border-bottom:1px solid var(--border); cursor:pointer; }
+.list-item:last-child{ border-bottom:none; }
+.list-item:active{ background:var(--surface); }
+.avatar{ width:40px; height:40px; border-radius:50%; background:var(--accent-soft); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; flex:none; }
+
+.settings-group{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius-m); overflow:hidden; }
+.settings-row{ display:flex; align-items:center; gap:12px; padding:14px 16px; border-bottom:1px solid var(--border); cursor:pointer; }
+.settings-row:last-child{ border-bottom:none; }
+.settings-row:active{ background:var(--surface); }
+.settings-row .ic{ width:32px; height:32px; border-radius:9px; background:var(--surface); display:flex; align-items:center; justify-content:center; flex:none; color:var(--accent-ink); }
+.settings-row .txt{ flex:1; min-width:0; }
+.settings-row .txt .t1{ font-size:14.5px; font-weight:600; }
+.settings-row .txt .t2{ font-size:12px; color:var(--muted); margin-top:1px; }
+.chev{ color:var(--muted-2); flex:none; }
+[dir="rtl"] .chev{ transform:scaleX(-1); }
+
+.toast{ position:fixed; bottom:96px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--surface); padding:11px 18px; border-radius:100px; font-size:13.5px; font-weight:600; z-index:100; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; max-width:88%; text-align:center; box-shadow:0 8px 24px rgba(0,0,0,.2); }
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(-4px); }
+
+.plan-card{ border:1.5px solid var(--border); border-radius:var(--radius-m); padding:16px; background:var(--card); position:relative; }
+.plan-card.selected{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+.plan-card .price{ font-size:24px; font-weight:800; }
+.plan-card .price span{ font-size:13px; font-weight:600; color:var(--muted); }
+
+.photo-grid{ display:flex; flex-wrap:wrap; gap:10px; }
+.photo-add-tile{ width:84px; height:84px; border-radius:12px; border:1.5px dashed var(--border); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:var(--muted); cursor:pointer; background:var(--card); flex:none; }
+.photo-add-tile span.n{ font-size:10.5px; font-weight:600; }
+.source-row{ display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+.source-row:last-child{ border-bottom:none; }
+.source-thumb{ width:64px; height:64px; border-radius:10px; overflow:hidden; flex:none; border:1px solid var(--border); background:var(--surface); }
+.source-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+.source-body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
+.source-actions{ display:flex; gap:8px; }
+.source-actions button{ font-size:12px; font-weight:600; padding:5px 10px; border-radius:100px; border:1px solid var(--border); background:var(--card); color:var(--text); cursor:pointer; }
+.source-actions button.danger{ color:var(--danger); border-color:var(--danger-soft); }
+
+.lang-screen, .welcome-screen, .auth-screen{ min-height:100vh; display:flex; flex-direction:column; padding:28px 24px; }
+.logo-mark{ width:56px; height:56px; border-radius:16px; background:var(--accent); display:flex; align-items:center; justify-content:center; color:#fff; }
+.tabs-inline{ display:flex; background:var(--surface); border-radius:12px; padding:4px; gap:4px; }
+.tabs-inline button{ flex:1; padding:10px; border-radius:9px; border:none; background:none; font-weight:700; font-size:14px; color:var(--muted); cursor:pointer; }
+.tabs-inline button.active{ background:var(--card); color:var(--text); box-shadow:var(--shadow); }
+
+.notice{ display:flex; gap:10px; padding:12px 14px; border-radius:var(--radius-s); background:var(--warning-soft); color:var(--warning); font-size:12.5px; line-height:1.5; align-items:flex-start; }
+.notice.info{ background:var(--accent-soft); color:var(--accent-ink); }
+::selection{ background:var(--accent-soft); }
+.divider{ height:1px; background:var(--border); margin:6px 20px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   VOXORA — data layer, backed by a real Supabase project
+   (Voxora, project ref hsyrztbvpqrqovbdbyae). Auth is real
+   Supabase Auth; all business/AI/phone/recording/notification/
+   subscription/booking/knowledge-source data is read from and
+   written to real Postgres tables behind RLS, scoped to the
+   signed-in user's own business. Only the publishable client
+   key is embedded here — safe to expose, enforced by RLS.
+   Nothing here fabricates business activity: calls, bookings
+   and summaries only ever come from real user input or a
+   connected backend/telephony provider.
+========================================================= */
+const SUPABASE_URL = 'https://hsyrztbvpqrqovbdbyae.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_46k7TbmVFImmYxPF4nK3lw_KyynZZca';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, storageKey: 'voxora-auth' }
+});
+const KNOWLEDGE_BUCKET = 'business-knowledge';
+
+// Local-only device preference (which language the app UI itself is shown in).
+// This is not app/user data — it's a client display setting, so it stays local.
+function readLocalAppLang(){ try{ return localStorage.getItem('voxora:appLang') || null; }catch(e){ return null; } }
+function writeLocalAppLang(v){ try{ localStorage.setItem('voxora:appLang', v); }catch(e){} }
+
+// SINGLE SOURCE OF TRUTH for all subscription pricing/minutes.
+// Every screen (Dashboard, Billing, Settings) reads plan price/minutes
+// from this array only — nothing else hardcodes a price or minute count.
+// Changing a value here updates it everywhere automatically.
+const PLANS = [
+  { id:'starter',    minutes:200,  price:39.99 },
+  { id:'business',   minutes:500,  price:89.99 },
+  { id:'pro',        minutes:1000, price:149.99 },
+  { id:'enterprise', minutes:2000, price:270.99 },
+];
+
+const CALL_LANGS = [
+  {id:'ar', native:'العربية'}, {id:'en', native:'English'}, {id:'de', native:'Deutsch'},
+  {id:'fr', native:'Français'}, {id:'es', native:'Español'}, {id:'tr', native:'Türkçe'},
+];
+
+function emptyState_(){
+  return {
+    appLang: readLocalAppLang(),
+    user: null,
+    businessId: null,
+    onboardStep: 'welcome',
+    business: { services: [], faqs: [] },
+    ai: { style:'friendly', primaryLang:'en', extraLangs:[], fallback:'offer_human', handoff:{asked:true, missingInfo:true, custom:false}, bookingBehavior:'auto', instructions:'', businessInstructions:'', greeting:'' },
+    phone: { connected:false, number:'', provider:'' },
+    recording: { enabled:false, consentNote:'' },
+    notifPrefs: { important_call:true, human_handoff:true, booking:true, failed_call:true, usage_limit:true, billing:true, daily_summary:true },
+    subscription: { planId:null, status:'inactive', minutesUsed:0, periodStart:null },
+    calls: [],
+    bookings: [],
+    route: 'dashboard',
+    routeParam: null,
+    booting: true,
+  };
+}
+let state = emptyState_();
+const sourceThumbUrls = {}; // business_knowledge_sources.id -> signed Storage URL, filled by loadAllData()
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(window.__t);
+  window.__t = setTimeout(()=>el.classList.remove('show'), 2000);
+}
+function errMsg(e){ return (e && (e.message || e.error_description || e.msg)) || String(e); }
+
+function nav(route, param){ state.route = route; state.routeParam = param || null; window.scrollTo(0,0); render(); }
+function go(step){ state.onboardStep = step; render(); }
+
+/* ---------------------------------------------------------
+   Load every real row for the signed-in user's business into
+   `state`, in the exact shapes the existing screens expect.
+--------------------------------------------------------- */
+async function ensureBusinessRow(userId){
+  let { data, error } = await sb.from('businesses').select('*').eq('owner_id', userId).maybeSingle();
+  if(error) throw error;
+  if(!data){
+    const ins = await sb.from('businesses').insert({ owner_id: userId }).select('*').single();
+    if(ins.error) throw ins.error;
+    data = ins.data;
+  }
+  return data;
+}
+
+function mapBusinessRow(b){
+  return {
+    businessName: b.name || '', country: b.country || '', city: b.city || '',
+    address: b.address || '', landlineNumber: b.landline_number || '', mobileNumber: b.mobile_number || '',
+    industry: b.industry || '', description: b.description || '', openingHours: b.opening_hours || '',
+    importantInfo: b.important_info || '', contactInfo: b.contact_info || '',
+    services: Array.isArray(b.services) ? b.services : [], faqs: Array.isArray(b.faqs) ? b.faqs : [],
+    photos: [], // filled separately from business_knowledge_sources
+  };
+}
+
+async function loadAllData(){
+  const { data: { user } } = await sb.auth.getUser();
+  if(!user) return;
+  state.user = { id:user.id, name: (user.user_metadata && user.user_metadata.name) || '', email: user.email };
+
+  const biz = await ensureBusinessRow(user.id);
+  state.businessId = biz.id;
+  state.business = mapBusinessRow(biz);
+
+  const [aiSettingsRes, aiLangsRes, callSettingsRes, recordingRes, phoneRes, notifRes, subRes, usageRes, sourcesRes, callsRes, bookingsRes] = await Promise.all([
+    sb.from('ai_settings').select('*').eq('business_id', biz.id).maybeSingle(),
+    sb.from('ai_languages').select('*').eq('business_id', biz.id),
+    sb.from('call_settings').select('*').eq('business_id', biz.id).maybeSingle(),
+    sb.from('recording_settings').select('*').eq('business_id', biz.id).maybeSingle(),
+    sb.from('phone_connections').select('*').eq('business_id', biz.id).maybeSingle(),
+    sb.from('notification_prefs').select('*').eq('business_id', biz.id).maybeSingle(),
+    sb.from('subscriptions').select('*').eq('business_id', biz.id).maybeSingle(),
+    sb.from('usage_records').select('*').eq('business_id', biz.id).order('period_start', {ascending:false}).limit(1),
+    sb.from('business_knowledge_sources').select('*').eq('business_id', biz.id).order('position', {ascending:true}),
+    sb.from('calls').select('*, call_summaries(summary)').eq('business_id', biz.id).order('started_at', {ascending:false}),
+    sb.from('bookings').select('*').eq('business_id', biz.id).order('created_at', {ascending:false}),
+  ]);
+
+  const ai = aiSettingsRes.data;
+  const langs = aiLangsRes.data || [];
+  const primary = langs.find(l=>l.is_primary);
+  const extra = langs.filter(l=>!l.is_primary).map(l=>l.language_code);
+  const cs = callSettingsRes.data;
+  state.ai = {
+    style: (ai && ai.tone) || 'friendly',
+    primaryLang: (primary && primary.language_code) || 'en',
+    extraLangs: extra,
+    fallback: (ai && ai.fallback_behavior) || 'offer_human',
+    handoff: {
+      asked: cs ? !!cs.handoff_ask_before : true,
+      missingInfo: cs ? !!cs.handoff_missing_info : true,
+      custom: cs ? !!cs.handoff_custom_rule : false,
+    },
+    bookingBehavior: (ai && ai.booking_behavior) || 'auto',
+    instructions: (ai && ai.instructions) || '',
+    businessInstructions: (ai && ai.business_instructions) || '',
+    greeting: (ai && ai.greeting_message) || '',
+  };
+
+  const rec = recordingRes.data;
+  state.recording = { enabled: rec ? !!rec.recording_enabled : false, consentNote: (rec && rec.consent_message) || '' };
+
+  const ph = phoneRes.data;
+  state.phone = { connected: ph ? ph.status === 'connected' : false, number: (ph && ph.phone_number) || '', provider: (ph && ph.provider) || '' };
+
+  const np = notifRes.data;
+  state.notifPrefs = np ? {
+    important_call: !!np.notify_on_call, human_handoff: !!np.notify_human_handoff, booking: !!np.notify_on_booking,
+    failed_call: !!np.notify_failed_call, usage_limit: !!np.notify_usage_limit, billing: !!np.notify_billing,
+    daily_summary: !!np.notify_daily_summary,
+  } : state.notifPrefs;
+
+  const sub = subRes.data;
+  const usage = (usageRes.data && usageRes.data[0]) || null;
+  state.subscription = sub ? {
+    planId: sub.plan_code, status: sub.status, minutesUsed: usage ? Number(usage.used_minutes)||0 : 0,
+    periodStart: sub.current_period_start,
+  } : { planId:null, status:'inactive', minutesUsed:0, periodStart:null };
+
+  state.business.photos = (sourcesRes.data || []).map(s => ({ id: s.id, name: s.file_name, note: s.note || '', storagePath: s.storage_path }));
+  await Promise.all(state.business.photos.map(async p=>{
+    try{
+      const { data, error } = await sb.storage.from(KNOWLEDGE_BUCKET).createSignedUrl(p.storagePath, 3600);
+      if(!error) sourceThumbUrls[p.id] = data.signedUrl;
+    }catch(e){ /* thumbnail just won't render if signing fails */ }
+  }));
+
+  state.calls = (callsRes.data || []).map(c => ({
+    id: c.id, caller: c.caller_name || c.caller_number || 'Unknown caller',
+    date: c.started_at ? new Date(c.started_at).toLocaleString() : '—',
+    duration: c.duration_seconds ? Math.round(c.duration_seconds/60)+'m' : '—',
+    transferred: !!c.transferred_to_human, language: c.language_used || '',
+    summary: c.call_summaries && c.call_summaries.length ? c.call_summaries[0].summary : (c.call_summaries && c.call_summaries.summary) || null,
+  }));
+
+  state.bookings = (bookingsRes.data || []).map(b => ({
+    id: b.id, customer: b.customer_name, service: b.service || '—',
+    date: b.booking_date || '', time: b.booking_time_text || '', notes: b.notes || '', status: b.status,
+  }));
+}
+
+function resetToSignedOut(){
+  state = emptyState_();
+  state.booting = false;
+  authMode = 'login'; authForgot = false;
+}
+
+/* =========================================================
+   Translations
+========================================================= */
+const STR = {
+  appName: { en:'VOXORA', de:'VOXORA', ar:'VOXORA' },
+  tagline: { en:'Your AI voice assistant, answering every business call.', de:'Ihr KI-Sprachassistent für jeden Geschäftsanruf.', ar:'مساعدك الصوتي الذكي، يرد على كل مكالمة عمل.' },
+  getStarted: { en:'Get started', de:'Loslegen', ar:'ابدأ الآن' },
+  chooseLanguage: { en:'Choose your app language', de:'Wählen Sie Ihre App-Sprache', ar:'اختر لغة التطبيق' },
+  chooseLanguageSub: { en:'You can change this anytime in Settings. This only changes the app — not the language the AI speaks on calls.', de:'Sie können dies jederzeit in den Einstellungen ändern. Dies betrifft nur die App — nicht die Sprache der KI bei Anrufen.', ar:'يمكنك تغيير هذا في أي وقت من الإعدادات. هذا يغيّر التطبيق فقط، وليس لغة المكالمات.' },
+  continue: { en:'Continue', de:'Weiter', ar:'متابعة' },
+  login: { en:'Log in', de:'Anmelden', ar:'تسجيل الدخول' },
+  signup: { en:'Create account', de:'Konto erstellen', ar:'إنشاء حساب' },
+  email: { en:'Email', de:'E-Mail', ar:'البريد الإلكتروني' },
+  password: { en:'Password', de:'Passwort', ar:'كلمة المرور' },
+  forgotPassword: { en:'Forgot password?', de:'Passwort vergessen?', ar:'نسيت كلمة المرور؟' },
+  fullName: { en:'Full name', de:'Vollständiger Name', ar:'الاسم الكامل' },
+  welcomeBack: { en:'Welcome back', de:'Willkommen zurück', ar:'مرحبًا بعودتك' },
+  createYourAccount: { en:'Create your account', de:'Konto erstellen', ar:'أنشئ حسابك' },
+  authSub: { en:'Business setup is optional — you can add it anytime after signing in.', de:'Die Unternehmenskonfiguration ist optional — Sie können sie jederzeit nach der Anmeldung hinzufügen.', ar:'إعداد النشاط التجاري اختياري — يمكنك إضافته لاحقًا.' },
+  resetLinkSent: { en:'If that email exists, a reset link has been sent.', de:'Falls diese E-Mail existiert, wurde ein Link zum Zurücksetzen gesendet.', ar:'إذا كان هذا البريد موجودًا، تم إرسال رابط لإعادة التعيين.' },
+  sendResetLink: { en:'Send reset link', de:'Link senden', ar:'إرسال رابط' },
+  backToLogin: { en:'Back to log in', de:'Zurück zur Anmeldung', ar:'العودة لتسجيل الدخول' },
+
+  dashboard: { en:'Dashboard', de:'Dashboard', ar:'الرئيسية' },
+  calls: { en:'Calls', de:'Anrufe', ar:'المكالمات' },
+  bookings: { en:'Bookings', de:'Buchungen', ar:'الحجوزات' },
+  summaries: { en:'Summaries', de:'Zusammenfassungen', ar:'الملخصات' },
+  settings: { en:'Settings', de:'Einstellungen', ar:'الإعدادات' },
+
+  callsOverview: { en:"Today's activity", de:'Heutige Aktivität', ar:'نشاط اليوم' },
+  totalCalls: { en:'Calls', de:'Anrufe', ar:'المكالمات' },
+  handled: { en:'AI handled', de:'Von KI bearbeitet', ar:'تعامل معها المساعد' },
+  transferred: { en:'Transferred', de:'Weitergeleitet', ar:'تم التحويل' },
+  minutesUsage: { en:'Minutes', de:'Minuten', ar:'الدقائق' },
+  used: { en:'used', de:'genutzt', ar:'مستخدمة' },
+  remaining: { en:'remaining', de:'verbleibend', ar:'متبقية' },
+  currentPlan: { en:'Current plan', de:'Aktueller Tarif', ar:'الباقة الحالية' },
+  noPlan: { en:'No active plan', de:'Kein aktiver Tarif', ar:'لا توجد باقة نشطة' },
+  choosePlan: { en:'Choose a plan', de:'Tarif wählen', ar:'اختر باقة' },
+  managePlan: { en:'Manage plan', de:'Tarif verwalten', ar:'إدارة الباقة' },
+  plansPageTitle: { en:'Plans & Pricing', de:'Tarife & Preise', ar:'الباقات والأسعار' },
+  recentCalls: { en:'Recent calls', de:'Letzte Anrufe', ar:'أحدث المكالمات' },
+  viewAll: { en:'View all', de:'Alle anzeigen', ar:'عرض الكل' },
+  phoneConnection: { en:'Phone connection', de:'Telefonverbindung', ar:'اتصال الهاتف' },
+  connected: { en:'Connected', de:'Verbunden', ar:'متصل' },
+  notConnected: { en:'Not connected', de:'Nicht verbunden', ar:'غير متصل' },
+  connectNow: { en:'Connect', de:'Verbinden', ar:'اتصال' },
+  dailySummary: { en:'Daily summary', de:'Tageszusammenfassung', ar:'الملخص اليومي' },
+  notifications: { en:'Notifications', de:'Benachrichtigungen', ar:'الإشعارات' },
+
+  noCallsTitle: { en:'No calls yet', de:'Noch keine Anrufe', ar:'لا توجد مكالمات بعد' },
+  noCallsBody: { en:'Once your phone line is connected, incoming calls handled by VOXORA will show up here.', de:'Sobald Ihre Telefonleitung verbunden ist, erscheinen hier eingehende Anrufe, die von VOXORA bearbeitet wurden.', ar:'بمجرد ربط خط هاتفك، ستظهر هنا المكالمات التي يتعامل معها VOXORA.' },
+  noBookingsTitle: { en:'No bookings yet', de:'Noch keine Buchungen', ar:'لا توجد حجوزات بعد' },
+  noBookingsBody: { en:'Bookings made during calls, or added manually, will appear here.', de:'Buchungen aus Anrufen oder manuell hinzugefügte erscheinen hier.', ar:'ستظهر هنا الحجوزات التي تتم أثناء المكالمات أو تُضاف يدويًا.' },
+  noSummariesTitle: { en:'No summaries available yet', de:'Noch keine Zusammenfassungen', ar:'لا توجد ملخصات متاحة بعد' },
+  noSummariesBody: { en:'A summary is generated automatically after each completed call.', de:'Nach jedem abgeschlossenen Anruf wird automatisch eine Zusammenfassung erstellt.', ar:'يتم إنشاء ملخص تلقائيًا بعد كل مكالمة مكتملة.' },
+  noNotifsTitle: { en:'No notifications yet', de:'Noch keine Benachrichtigungen', ar:'لا توجد إشعارات بعد' },
+  noDailyTitle: { en:'No summary available yet', de:'Noch keine Zusammenfassung verfügbar', ar:'لا يوجد ملخص متاح بعد' },
+  noDailyBody: { en:'Your daily summary will appear here once VOXORA has handled calls today.', de:'Ihre Tageszusammenfassung erscheint hier, sobald VOXORA heute Anrufe bearbeitet hat.', ar:'سيظهر ملخصك اليومي هنا بمجرد أن يتعامل VOXORA مع مكالمات اليوم.' },
+
+  addBooking: { en:'Add booking', de:'Buchung hinzufügen', ar:'إضافة حجز' },
+  customer: { en:'Customer', de:'Kunde', ar:'العميل' },
+  service: { en:'Service', de:'Dienstleistung', ar:'الخدمة' },
+  date: { en:'Date', de:'Datum', ar:'التاريخ' },
+  time: { en:'Time', de:'Uhrzeit', ar:'الوقت' },
+  notes: { en:'Notes', de:'Notizen', ar:'ملاحظات' },
+  save: { en:'Save', de:'Speichern', ar:'حفظ' },
+  cancel: { en:'Cancel', de:'Abbrechen', ar:'إلغاء' },
+  status: { en:'Status', de:'Status', ar:'الحالة' },
+
+  account: { en:'Account', de:'Konto', ar:'الحساب' },
+  businessInfo: { en:'Business Information', de:'Unternehmensinformationen', ar:'معلومات النشاط التجاري' },
+  aiAssistant: { en:'AI Assistant', de:'KI-Assistent', ar:'المساعد الذكي' },
+  phoneCallConnection: { en:'Phone / Call Connection', de:'Telefon-/Anrufverbindung', ar:'اتصال الهاتف والمكالمات' },
+  callSettings: { en:'Call Settings', de:'Anrufeinstellungen', ar:'إعدادات المكالمات' },
+  recordingLabel: { en:'Recording', de:'Aufnahme', ar:'التسجيل' },
+  billing: { en:'Billing & Subscription', de:'Abrechnung & Abo', ar:'الفوترة والاشتراك' },
+  appLanguage: { en:'App Language', de:'App-Sprache', ar:'لغة التطبيق' },
+  security: { en:'Security', de:'Sicherheit', ar:'الأمان' },
+  logout: { en:'Log out', de:'Abmelden', ar:'تسجيل الخروج' },
+
+  businessName: { en:'Business name', de:'Firmenname', ar:'اسم النشاط' },
+  country: { en:'Country', de:'Land', ar:'الدولة' },
+  city: { en:'City', de:'Stadt', ar:'المدينة' },
+  address: { en:'Address', de:'Adresse', ar:'العنوان' },
+  landlineNumber: { en:'Landline number', de:'Festnetznummer', ar:'رقم الهاتف الأرضي' },
+  mobileNumber: { en:'Mobile number', de:'Mobilnummer', ar:'رقم الهاتف المحمول' },
+  industry: { en:'Industry / category', de:'Branche / Kategorie', ar:'المجال / الفئة' },
+  description: { en:'Business description', de:'Unternehmensbeschreibung', ar:'وصف النشاط' },
+  openingHours: { en:'Opening hours', de:'Öffnungszeiten', ar:'ساعات العمل' },
+  services: { en:'Services', de:'Dienstleistungen', ar:'الخدمات' },
+  addService: { en:'Add service', de:'Dienstleistung hinzufügen', ar:'إضافة خدمة' },
+  serviceName: { en:'Service name', de:'Name der Dienstleistung', ar:'اسم الخدمة' },
+  price: { en:'Price', de:'Preis', ar:'السعر' },
+  currency: { en:'Currency', de:'Währung', ar:'العملة' },
+  faqs: { en:'FAQs', de:'FAQs', ar:'الأسئلة الشائعة' },
+  addFaq: { en:'Add FAQ', de:'FAQ hinzufügen', ar:'إضافة سؤال' },
+  question: { en:'Question', de:'Frage', ar:'السؤال' },
+  answer: { en:'Answer', de:'Antwort', ar:'الإجابة' },
+  importantInfo: { en:'Important business information', de:'Wichtige Unternehmensinformationen', ar:'معلومات مهمة عن النشاط' },
+  contactInfo: { en:'Contact information', de:'Kontaktinformationen', ar:'معلومات التواصل' },
+  savedChanges: { en:'Changes saved', de:'Änderungen gespeichert', ar:'تم حفظ التغييرات' },
+  businessInfoNote: { en:'This information is optional. VOXORA only ever uses what you enter here — it never invents details about your business.', de:'Diese Angaben sind optional. VOXORA verwendet ausschließlich hier eingetragene Informationen — es erfindet nie Details über Ihr Unternehmen.', ar:'هذه المعلومات اختيارية. يستخدم VOXORA فقط ما تُدخله هنا، ولا يختلق أي تفاصيل عن نشاطك التجاري.' },
+  businessPhotos: { en:'Business Knowledge / Information Sources', de:'Unternehmenswissen / Informationsquellen', ar:'معرفة النشاط / مصادر المعلومات' },
+  knowledgeIntro: { en:'Add photos of menus, price lists, service sheets or other documents. VOXORA\'s AI can extract information from them to help answer customer calls — these images are never shown to customers.', de:'Fügen Sie Fotos von Speisekarten, Preislisten, Leistungsübersichten oder anderen Dokumenten hinzu. Die KI von VOXORA kann daraus Informationen extrahieren, um Kundenanrufe zu beantworten — diese Bilder werden Kunden nie gezeigt.', ar:'أضف صورًا لقوائم الطعام أو قوائم الأسعار أو أوراق الخدمات أو مستندات أخرى. يمكن لذكاء VOXORA استخراج المعلومات منها للمساعدة في الرد على مكالمات العملاء — لا تُعرض هذه الصور على العملاء أبدًا.' },
+  addPhoto: { en:'Add photo', de:'Foto hinzufügen', ar:'إضافة صورة' },
+  replacePhoto: { en:'Replace', de:'Ersetzen', ar:'استبدال' },
+  deletePhoto: { en:'Remove', de:'Entfernen', ar:'إزالة' },
+  photosCount: { en:'photos', de:'Fotos', ar:'صور' },
+  photosLimitNote: { en:'Up to 11 images per business — take a photo or upload from your library.', de:'Bis zu 11 Bilder pro Unternehmen — machen Sie ein Foto oder laden Sie eines aus Ihrer Mediathek hoch.', ar:'حتى 11 صورة لكل نشاط تجاري — التقط صورة أو ارفعها من مكتبتك.' },
+  photosStorageNote: { en:'Images are saved on this device for now. Connect real backend storage and AI image/document processing to extract information automatically and keep these permanently.', de:'Bilder werden derzeit nur auf diesem Gerät gespeichert. Verbinden Sie ein echtes Backend-Storage sowie eine KI-Bild-/Dokumentenverarbeitung, um Informationen automatisch zu extrahieren und dauerhaft zu speichern.', ar:'يتم حفظ الصور حاليًا على هذا الجهاز فقط. قم بربط تخزين خلفي حقيقي ومعالجة ذكاء اصطناعي للصور/المستندات لاستخراج المعلومات تلقائيًا وحفظها بشكل دائم.' },
+  photoLimitReached: { en:'You have reached the 11-image limit. Remove one to add a new one.', de:'Sie haben das Limit von 11 Bildern erreicht. Entfernen Sie eines, um ein neues hinzuzufügen.', ar:'لقد وصلت إلى الحد الأقصى وهو 11 صورة. أزل واحدة لإضافة صورة جديدة.' },
+  photoTooLarge: { en:'That image is too large or not a supported format. Please choose a smaller image file.', de:'Das Bild ist zu groß oder ein nicht unterstütztes Format. Bitte wählen Sie eine kleinere Bilddatei.', ar:'حجم الصورة كبير جدًا أو الصيغة غير مدعومة. يرجى اختيار ملف صورة أصغر.' },
+  sourceStatusPending: { en:'Awaiting AI processing', de:'Wartet auf KI-Verarbeitung', ar:'بانتظار معالجة الذكاء الاصطناعي' },
+  extractedInfoLabel: { en:'Extracted information', de:'Extrahierte Informationen', ar:'المعلومات المستخرجة' },
+  extractedInfoPlaceholder: { en:'Not processed yet. You can add notes manually — once AI extraction is connected, extracted text will appear here for you to review and edit.', de:'Noch nicht verarbeitet. Sie können manuell Notizen hinzufügen — sobald die KI-Extraktion verbunden ist, erscheint hier extrahierter Text zur Überprüfung und Bearbeitung.', ar:'لم تتم معالجتها بعد. يمكنك إضافة ملاحظات يدويًا — بمجرد ربط استخراج الذكاء الاصطناعي، سيظهر هنا نص مستخرج لمراجعته وتعديله.' },
+
+  companyCountry: { en:'Company country', de:'Land des Unternehmens', ar:'دولة الشركة' },
+  primaryCallLanguage: { en:'Primary call language', de:'Primäre Anrufsprache', ar:'لغة المكالمة الأساسية' },
+  additionalLanguages: { en:'Additional supported languages', de:'Weitere unterstützte Sprachen', ar:'لغات إضافية مدعومة' },
+  primaryLangNote: { en:'Every call starts in this language, regardless of the caller\'s phone number or country code.', de:'Jeder Anruf beginnt in dieser Sprache, unabhängig von der Telefonnummer oder Landesvorwahl des Anrufers.', ar:'تبدأ كل مكالمة بهذه اللغة، بغض النظر عن رقم هاتف المتصل أو رمز الدولة.' },
+  aiInstructions: { en:'AI instructions', de:'KI-Anweisungen', ar:'تعليمات المساعد الذكي' },
+  communicationStyle: { en:'Communication style', de:'Kommunikationsstil', ar:'أسلوب التواصل' },
+  styleFriendly: { en:'Friendly', de:'Freundlich', ar:'ودّي' },
+  styleFormal: { en:'Formal', de:'Formell', ar:'رسمي' },
+  styleConcise: { en:'Concise', de:'Knapp', ar:'موجز' },
+  greeting: { en:'Greeting', de:'Begrüßung', ar:'رسالة الترحيب' },
+  greetingPh: { en:'e.g. "Thanks for calling [Business] — how can I help?"', de:'z. B. "Danke für Ihren Anruf bei [Firma] — wie kann ich helfen?"', ar:'مثال: "شكرًا لاتصالك بـ [النشاط] — كيف يمكنني مساعدتك؟"' },
+  handoffRules: { en:'Human handoff rules', de:'Regeln für Weiterleitung an Mitarbeiter', ar:'قواعد التحويل إلى موظف' },
+  handoffAsked: { en:'Customer asks for a human', de:'Kunde fragt nach einem Mitarbeiter', ar:'يطلب العميل التحدث مع موظف' },
+  handoffMissing: { en:'Required information is unavailable', de:'Erforderliche Informationen fehlen', ar:'المعلومات المطلوبة غير متوفرة' },
+  handoffCustom: { en:'Business-specific situations (defined below)', de:'Unternehmensspezifische Situationen (unten definiert)', ar:'حالات خاصة بالنشاط (محددة أدناه)' },
+  fallbackBehavior: { en:'Fallback behavior', de:'Fallback-Verhalten', ar:'السلوك الاحتياطي' },
+  fallbackOfferHuman: { en:'Offer to transfer to a human', de:'Weiterleitung an einen Mitarbeiter anbieten', ar:'عرض التحويل إلى موظف' },
+  fallbackTakeMessage: { en:'Take a message', de:'Nachricht aufnehmen', ar:'أخذ رسالة' },
+  fallbackApologize: { en:'Apologize and end politely', de:'Entschuldigen und höflich beenden', ar:'الاعتذار وإنهاء المكالمة بلطف' },
+  businessInstructions: { en:'Business-specific instructions', de:'Unternehmensspezifische Anweisungen', ar:'تعليمات خاصة بالنشاط' },
+  bookingBehavior: { en:'Booking behavior', de:'Buchungsverhalten', ar:'سلوك الحجز' },
+  bookingAuto: { en:'Book automatically when possible', de:'Automatisch buchen, wenn möglich', ar:'الحجز تلقائيًا عند الإمكان' },
+  bookingConfirm: { en:'Always confirm with the customer first', de:'Immer zuerst mit dem Kunden bestätigen', ar:'التأكيد مع العميل أولًا دائمًا' },
+  bookingOff: { en:'Do not take bookings', de:'Keine Buchungen entgegennehmen', ar:'عدم استقبال الحجوزات' },
+
+  connectPhoneTitle: { en:'Connect a phone number', de:'Telefonnummer verbinden', ar:'ربط رقم هاتف' },
+  provider: { en:'Provider', de:'Anbieter', ar:'المزوّد' },
+  businessPhoneNumber: { en:'Business phone number', de:'Geschäftliche Telefonnummer', ar:'رقم هاتف النشاط' },
+  disconnect: { en:'Disconnect', de:'Trennen', ar:'قطع الاتصال' },
+  phoneNotConnectedNote: { en:'No live telephony provider is connected in this build. Connecting requires backend credentials for a voice provider — set that up before going live.', de:'In dieser Version ist kein aktiver Telefonanbieter verbunden. Dafür sind Backend-Zugangsdaten eines Sprachanbieters nötig — richten Sie diese vor dem Livegang ein.', ar:'لا يوجد مزوّد اتصالات فعلي متصل في هذا الإصدار. يتطلب الربط بيانات اعتماد خلفية لمزوّد صوت — قم بإعدادها قبل الإطلاق الفعلي.' },
+  setup: { en:'Set up', de:'Einrichten', ar:'إعداد' },
+
+  recordingEnabled: { en:'Enable call recording', de:'Anrufaufzeichnung aktivieren', ar:'تفعيل تسجيل المكالمات' },
+  recordingOptionalNote: { en:'Recording is off by default. Turning it on may require informing callers, depending on your local laws.', de:'Die Aufnahme ist standardmäßig deaktiviert. Das Aktivieren kann je nach örtlichen Gesetzen eine Hinweispflicht gegenüber Anrufern nach sich ziehen.', ar:'التسجيل معطل افتراضيًا. قد يتطلب تفعيله إبلاغ المتصلين وفقًا للقوانين المحلية.' },
+  consentNote: { en:'Consent notice read to callers (optional)', de:'Hinweistext für Anrufer (optional)', ar:'نص إشعار الموافقة للمتصلين (اختياري)' },
+
+  planFeaturesNote: { en:'All plans include the same VOXORA features. The only difference is included minutes.', de:'Alle Tarife enthalten dieselben VOXORA-Funktionen. Der einzige Unterschied sind die enthaltenen Minuten.', ar:'كل الباقات تشمل نفس ميزات VOXORA. الفرق الوحيد هو عدد الدقائق المتضمنة.' },
+  perMonth: { en:'/mo', de:'/Monat', ar:'/شهر' },
+  minutesIncluded: { en:'minutes included', de:'Minuten enthalten', ar:'دقيقة مشمولة' },
+  selectPlan: { en:'Select plan', de:'Tarif auswählen', ar:'اختيار الباقة' },
+  currentBadge: { en:'Current', de:'Aktuell', ar:'الحالي' },
+  billingPeriod: { en:'Billing period', de:'Abrechnungszeitraum', ar:'فترة الفوترة' },
+  paymentStatus: { en:'Payment status', de:'Zahlungsstatus', ar:'حالة الدفع' },
+  billingHistory: { en:'Billing history', de:'Abrechnungsverlauf', ar:'سجل الفوترة' },
+  noBillingHistory: { en:'No billing history yet.', de:'Noch kein Abrechnungsverlauf.', ar:'لا يوجد سجل فوترة بعد.' },
+  upgrade: { en:'Change plan', de:'Tarif ändern', ar:'تغيير الباقة' },
+  cancelSub: { en:'Cancel subscription', de:'Abo kündigen', ar:'إلغاء الاشتراك' },
+  stripeNote: { en:'Payments are not processed in this build. This screen is wired for a real Stripe integration — connect your Stripe account on the backend to accept real payments.', de:'In dieser Version werden keine Zahlungen verarbeitet. Dieser Bildschirm ist für eine echte Stripe-Integration vorbereitet — verbinden Sie Ihr Stripe-Konto im Backend, um echte Zahlungen zu akzeptieren.', ar:'لا تتم معالجة المدفوعات في هذا الإصدار. هذه الشاشة جاهزة لتكامل حقيقي مع Stripe — قم بربط حساب Stripe الخاص بك من الخلفية لقبول مدفوعات حقيقية.' },
+
+  notifImportant: { en:'Important call', de:'Wichtiger Anruf', ar:'مكالمة مهمة' },
+  notifHandoff: { en:'Human handoff', de:'Weiterleitung an Mitarbeiter', ar:'تحويل إلى موظف' },
+  notifBooking: { en:'Booking', de:'Buchung', ar:'حجز' },
+  notifFailed: { en:'Failed call', de:'Fehlgeschlagener Anruf', ar:'مكالمة فاشلة' },
+  notifUsage: { en:'Usage limit warning', de:'Warnung zum Nutzungslimit', ar:'تحذير حد الاستخدام' },
+  notifBilling: { en:'Subscription / payment event', de:'Abo-/Zahlungsereignis', ar:'حدث الاشتراك أو الدفع' },
+  notifDaily: { en:'Daily summary', de:'Tageszusammenfassung', ar:'الملخص اليومي' },
+
+  changePassword: { en:'Change password', de:'Passwort ändern', ar:'تغيير كلمة المرور' },
+  currentPassword: { en:'Current password', de:'Aktuelles Passwort', ar:'كلمة المرور الحالية' },
+  newPassword: { en:'New password', de:'Neues Passwort', ar:'كلمة المرور الجديدة' },
+  activeSession: { en:'You are securely signed in on this device.', de:'Sie sind auf diesem Gerät sicher angemeldet.', ar:'أنت مسجل الدخول بأمان على هذا الجهاز.' },
+  demoAuthNote: { en:'Your account is secured by Supabase Auth. Your password is never stored in this app.', de:'Ihr Konto wird durch Supabase Auth geschützt. Ihr Passwort wird niemals in dieser App gespeichert.', ar:'حسابك محمي بواسطة Supabase Auth. لا يتم تخزين كلمة مرورك أبدًا في هذا التطبيق.' },
+
+  callDetails: { en:'Call details', de:'Anrufdetails', ar:'تفاصيل المكالمة' },
+  duration: { en:'Duration', de:'Dauer', ar:'المدة' },
+  languageUsed: { en:'Language used', de:'Verwendete Sprache', ar:'اللغة المستخدمة' },
+  outcome: { en:'Outcome', de:'Ergebnis', ar:'النتيجة' },
+  aiHandled: { en:'AI handled', de:'Von KI bearbeitet', ar:'تعاملت معها الذكاء الاصطناعي' },
+  humanHandled: { en:'Human handled', de:'Von Mitarbeiter bearbeitet', ar:'تعامل معها موظف' },
+
+  edit: { en:'Edit', de:'Bearbeiten', ar:'تعديل' },
+  done: { en:'Done', de:'Fertig', ar:'تم' },
+  optional: { en:'optional', de:'optional', ar:'اختياري' },
+  addLater: { en:'You can skip this and add it later from Settings.', de:'Sie können dies überspringen und später in den Einstellungen hinzufügen.', ar:'يمكنك تخطي هذا وإضافته لاحقًا من الإعدادات.' },
+  skipToDashboard: { en:'Skip to dashboard', de:'Zum Dashboard springen', ar:'الانتقال إلى الرئيسية' },
+};
+function T(key){
+  const row = STR[key];
+  if(!row) return key;
+  return row[state.appLang] || row.en || key;
+}
+function setAppLang(l){ state.appLang = l; document.documentElement.lang = l; document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr'; writeLocalAppLang(l); }
+
+/* =========================================================
+   Icons (inline SVG, currentColor)
+========================================================= */
+const ICON = {
+  home:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9"/></svg>`,
+  phone:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2C9.5 21 3 14.5 3 6a2 2 0 0 1 2-2Z"/></svg>`,
+  calendar:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>`,
+  doc:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg>`,
+  gear:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.9 2.9l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V19a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.9-2.9l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H4a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.9-2.9l.1.1a1.7 1.7 0 0 0 1.9.3H10a1.7 1.7 0 0 0 1-1.6V4a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.9 2.9l-.1.1a1.7 1.7 0 0 0-.3 1.9V10a1.7 1.7 0 0 0 1.6 1H20a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg>`,
+  back:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>`,
+  bell:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>`,
+  user:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>`,
+  building:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="12" height="18" rx="1"/><path d="M8 7h4M8 11h4M8 15h4M16 10h4v11h-4"/></svg>`,
+  bot:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="8" width="16" height="11" rx="2.5"/><path d="M12 8V4M9 4h6"/><circle cx="9" cy="13.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="13.5" r="1.2" fill="currentColor" stroke="none"/></svg>`,
+  sim:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h7l4 4v14H7z"/><rect x="9.5" y="10" width="5" height="6" rx="1"/></svg>`,
+  mic:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>`,
+  card:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M6.5 15h4"/></svg>`,
+  globe:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5a13 13 0 0 1 0 17 13 13 0 0 1 0-17Z"/></svg>`,
+  shield:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>`,
+  logout:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3M15 16l4-4-4-4M19 12H9"/></svg>`,
+  plus:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`,
+  inbox:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12l2.5-7h11L20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 12h5l1.5 2.5h3L15 12h5"/></svg>`,
+};
+function icon(name, size){ return `<span style="display:inline-flex;width:${size||20}px;height:${size||20}px">${ICON[name]||''}</span>`; }
+
+/* =========================================================
+   Root render
+========================================================= */
+function render(){
+  const root = document.getElementById('root');
+  document.documentElement.dir = state.appLang === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.lang = state.appLang || 'en';
+
+  if(state.booting){
+    root.innerHTML = `<div class="welcome-screen"><div style="flex:1;display:flex;align-items:center;justify-content:center;"><div class="logo-mark">${icon('phone',28)}</div></div></div>`;
+    return;
+  }
+
+  if(!state.user){
+    root.innerHTML = screenOnboarding();
+  } else {
+    root.innerHTML = `<div class="app">
+      <div class="scroll-area" id="scrollArea">${screenRouter()}</div>
+      ${tabbar()}
+    </div>`;
+  }
+  bindEvents();
+}
+
+function screenOnboarding(){
+  if(state.onboardStep === 'welcome'){
+    return welcomeScreen();
+  }
+  if(state.onboardStep === 'language'){
+    return languageScreen(true);
+  }
+  return authScreen();
+}
+
+function welcomeScreen(){
+  return `<div class="welcome-screen">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;">
+      <div class="logo-mark">${icon('phone',28)}</div>
+      <div>
+        <div style="font-size:28px;font-weight:800;letter-spacing:-0.02em;">VOXORA</div>
+        <p class="muted" style="max-width:280px;margin:10px auto 0;line-height:1.55;font-size:14.5px;">${state.appLang? T('tagline') : 'Your AI voice assistant, answering every business call.'}</p>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="btnWelcomeStart" style="margin-top:20px;">${state.appLang? T('getStarted') : 'Get started'}</button>
+  </div>`;
+}
+
+function languageScreen(fromOnboarding){
+  const langs = [ {id:'en', label:'English', native:'English'}, {id:'de', label:'German', native:'Deutsch'}, {id:'ar', label:'Arabic', native:'العربية'} ];
+  return `<div class="lang-screen">
+    ${!fromOnboarding? `<div class="row" style="margin-bottom:10px;"><button class="icon-btn" id="btnBackSettings">${icon('back',18)}</button><div></div></div>` : ''}
+    <div style="flex:1;">
+      <h2 style="font-size:21px;font-weight:800;margin:10px 0 6px;">${T('chooseLanguage')}</h2>
+      <p class="muted small" style="line-height:1.5;margin-bottom:24px;">${T('chooseLanguageSub')}</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${langs.map(l => `
+          <button class="card lang-opt" data-lang="${l.id}" style="display:flex;align-items:center;justify-content:space-between;width:100%;text-align:${'inherit'};cursor:pointer;">
+            <span style="font-weight:700;font-size:15px;">${l.native}</span>
+            <span class="badge neutral">${l.label}</span>
+          </button>`).join('')}
+      </div>
+    </div>
+    ${fromOnboarding? `<button class="btn btn-primary" id="btnLangContinue" style="margin-top:16px;" ${state.appLang? '' : 'disabled'}>${T('continue')}</button>` : ''}
+  </div>`;
+}
+
+let authMode = 'login';
+let authForgot = false;
+let pendingPhotoReplaceId = null;
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5MB per file — matches the Storage bucket's file_size_limit
+function authScreen(){
+  return `<div class="auth-screen">
+    <div class="row" style="margin-bottom:18px;">
+      <button class="icon-btn" id="btnBackToLang">${icon('back',18)}</button>
+      <div></div>
+    </div>
+    ${authForgot ? forgotForm() : `
+      <h2 style="font-size:23px;font-weight:800;margin:4px 0 4px;">${authMode==='login'? T('welcomeBack') : T('createYourAccount')}</h2>
+      <p class="muted small" style="line-height:1.5;margin-bottom:20px;">${T('authSub')}</p>
+      <div class="tabs-inline" style="margin-bottom:20px;">
+        <button class="${authMode==='login'?'active':''}" data-authmode="login">${T('login')}</button>
+        <button class="${authMode==='signup'?'active':''}" data-authmode="signup">${T('signup')}</button>
+      </div>
+      <form id="authForm">
+        ${authMode==='signup' ? `<div class="field"><label>${T('fullName')}</label><input required name="name" type="text" autocapitalize="words"></div>` : ''}
+        <div class="field"><label>${T('email')}</label><input required name="email" type="email" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+        <div class="field">
+          <label>${T('password')}</label>
+          <div style="position:relative;">
+            <input required id="pwField" name="password" type="password" minlength="6" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="padding-inline-end:42px;">
+            <button type="button" id="togglePw" aria-label="show password" style="position:absolute; inset-inline-end:4px; top:50%; transform:translateY(-50%); width:30px; height:30px; border:none; background:none; color:var(--muted); cursor:pointer; font-size:16px;">👁</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" type="submit">${authMode==='login'? T('login') : T('signup')}</button>
+      </form>
+      ${authMode==='login' ? `<button class="btn btn-ghost" id="btnForgot" style="margin-top:6px;">${T('forgotPassword')}</button>` : ''}
+      <p class="hint" style="text-align:center;margin-top:18px;">${T('demoAuthNote')}</p>
+    `}
+  </div>`;
+}
+function forgotForm(){
+  return `<h2 style="font-size:21px;font-weight:800;margin:4px 0 14px;">${T('forgotPassword')}</h2>
+    <form id="forgotForm">
+      <div class="field"><label>${T('email')}</label><input required name="email" type="email"></div>
+      <button class="btn btn-primary" type="submit">${T('sendResetLink')}</button>
+    </form>
+    <button class="btn btn-ghost" id="btnBackLogin" style="margin-top:8px;">${T('backToLogin')}</button>`;
+}
+
+/* =========================================================
+   Router for main app
+========================================================= */
+function screenRouter(){
+  switch(state.route){
+    case 'dashboard': return dashboardScreen();
+    case 'calls': return callsScreen();
+    case 'call-detail': return callDetailScreen(state.routeParam);
+    case 'bookings': return bookingsScreen();
+    case 'summaries': return summariesScreen();
+    case 'settings': return settingsHome();
+    case 'settings-account': return settingsAccount();
+    case 'settings-business': return settingsBusiness();
+    case 'settings-ai': return settingsAI();
+    case 'settings-phone': return settingsPhone();
+    case 'settings-callsettings': return settingsCallSettings();
+    case 'settings-notifications': return settingsNotifications();
+    case 'settings-billing': return settingsBilling();
+    case 'settings-plans': return settingsPlans();
+    case 'settings-language': return languageScreen(false);
+    case 'settings-security': return settingsSecurity();
+    default: return dashboardScreen();
+  }
+}
+
+function header(title, opts){
+  opts = opts || {};
+  return `<div class="topbar">
+    <div class="back">
+      ${opts.back ? `<button class="icon-btn" data-back="${opts.back}">${icon('back',18)}</button>` : ''}
+      <h1>${title}</h1>
+    </div>
+    ${opts.right || ''}
+  </div>`;
+}
+
+function tabbar(){
+  const tabs = [
+    {id:'dashboard', label:T('dashboard'), icon:'home'},
+    {id:'calls', label:T('calls'), icon:'phone'},
+    {id:'bookings', label:T('bookings'), icon:'calendar'},
+    {id:'summaries', label:T('summaries'), icon:'doc'},
+    {id:'settings', label:T('settings'), icon:'gear'},
+  ];
+  const active = ['settings-account','settings-business','settings-ai','settings-phone','settings-callsettings','settings-notifications','settings-billing','settings-plans','settings-language','settings-security'].includes(state.route) ? 'settings' : (state.route==='call-detail' ? 'calls' : state.route);
+  return `<div class="tabbar">
+    ${tabs.map(t => `<button class="tab ${active===t.id?'active':''}" data-tab="${t.id}">${icon(t.icon,21)}<span class="label">${t.label}</span></button>`).join('')}
+  </div>`;
+}
+
+/* ---------- Dashboard ---------- */
+function dashboardScreen(){
+  const plan = PLANS.find(p => p.id === state.subscription.planId);
+  const totalCalls = state.calls.length;
+  const handled = state.calls.filter(c=>!c.transferred).length;
+  const transferred = state.calls.filter(c=>c.transferred).length;
+  const minutesUsed = state.subscription.minutesUsed || 0;
+  const minutesTotal = plan ? plan.minutes : 0;
+  const pct = plan ? Math.min(100, Math.round((minutesUsed/minutesTotal)*100)) : 0;
+
+  return `
+  ${header('VOXORA', { right: `<button class="icon-btn" data-nav="settings-notifications">${icon('bell',17)}</button>` })}
+  <div class="px" style="margin-bottom:4px;">
+    <div class="muted small">${greetingLine()}</div>
+  </div>
+
+  <div class="section-title" style="margin-top:14px;">${T('callsOverview')}</div>
+  <div class="stack">
+    <div class="card">
+      <div class="row">
+        <div><div class="big-num">${totalCalls}</div><div class="small muted">${T('totalCalls')}</div></div>
+        <div><div class="big-num">${handled}</div><div class="small muted">${T('handled')}</div></div>
+        <div><div class="big-num">${transferred}</div><div class="small muted">${T('transferred')}</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">${T('minutesUsage')}</div>
+  <div class="stack">
+    <div class="card">
+      ${plan ? `
+        <div class="row" style="margin-bottom:10px;">
+          <div class="small muted">${minutesUsed} ${T('used')} · ${minutesTotal-minutesUsed} ${T('remaining')}</div>
+          <div class="small" style="font-weight:700;">${pct}%</div>
+        </div>
+        <div style="height:8px;border-radius:8px;background:var(--surface);overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:8px;"></div>
+        </div>
+      ` : `
+        <div class="row">
+          <span class="muted small">${T('noPlan')}</span>
+          <button class="btn btn-primary btn-sm" data-nav="settings-plans">${T('choosePlan')}</button>
+        </div>
+      `}
+    </div>
+  </div>
+
+  <div class="section-title">${T('phoneConnection')}</div>
+  <div class="stack">
+    <div class="card row">
+      <div class="row" style="gap:10px;">
+        <span style="color:${state.phone.connected?'var(--success)':'var(--muted-2)'};">${icon('sim',20)}</span>
+        <div>
+          <div style="font-weight:700;font-size:14px;">${state.phone.connected? (state.phone.number||T('connected')) : T('notConnected')}</div>
+          <div class="small muted">${state.phone.connected? state.phone.provider : ''}</div>
+        </div>
+      </div>
+      ${!state.phone.connected ? `<button class="btn btn-secondary btn-sm" data-nav="settings-phone">${T('connectNow')}</button>` : `<span class="badge success">${T('connected')}</span>`}
+    </div>
+  </div>
+
+  <div class="section-title">${T('recentCalls')}</div>
+  <div class="stack">
+    <div class="card" style="padding:0;">
+      ${state.calls.length ? state.calls.slice(0,3).map(callRow).join('') : emptyState('inbox', T('noCallsTitle'), T('noCallsBody'))}
+    </div>
+    ${state.calls.length ? `<button class="btn btn-ghost btn-sm" data-nav="calls" style="align-self:flex-start;">${T('viewAll')}</button>` : ''}
+  </div>
+
+  <div class="section-title">${T('dailySummary')}</div>
+  <div class="stack">
+    <div class="card">${emptyState('doc', T('noDailyTitle'), T('noDailyBody'), true)}</div>
+  </div>
+
+  <div class="section-title">${T('currentPlan')}</div>
+  <div class="stack" style="margin-bottom:10px;">
+    <div class="card row">
+      <div>
+        <div style="font-weight:700;">${plan ? planName(plan.id) : T('noPlan')}</div>
+        ${plan ? `<div class="small muted">€${plan.price.toFixed(2)}${T('perMonth')} · ${plan.minutes} ${T('minutesIncluded')}</div>` : ''}
+      </div>
+      <button class="btn btn-secondary btn-sm" data-nav="settings-plans">${plan? T('managePlan') : T('choosePlan')}</button>
+    </div>
+  </div>
+  `;
+}
+function greetingLine(){
+  const name = (state.user && state.user.name) ? state.user.name.split(' ')[0] : (state.user? state.user.email : '');
+  const biz = state.business.businessName ? ' · ' + state.business.businessName : '';
+  return `${name}${biz}`;
+}
+function planName(id){
+  const map = { starter:{en:'Starter',de:'Starter',ar:'الأساسية'}, business:{en:'Business',de:'Business',ar:'الأعمال'}, pro:{en:'Pro',de:'Pro',ar:'المحترفة'}, enterprise:{en:'Enterprise',de:'Enterprise',ar:'المؤسسات'} };
+  return map[id] ? (map[id][state.appLang]||map[id].en) : id;
+}
+function emptyState(iconName, title, body, compact){
+  return `<div class="empty" style="${compact?'padding:20px 10px;':''}">
+    <div class="icon">${icon(iconName,24)}</div>
+    <h3>${title}</h3>
+    <p>${body}</p>
+  </div>`;
+}
+function callRow(c){
+  return `<div class="list-item" data-nav="call-detail" data-param="${c.id}">
+    <div class="avatar">${(c.caller||'?').slice(0,1).toUpperCase()}</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-weight:600;font-size:14px;">${c.caller||'Unknown caller'}</div>
+      <div class="small muted">${c.date} · ${c.duration}</div>
+    </div>
+    <span class="badge ${c.transferred?'warning':'success'}">${c.transferred?T('transferred'):T('aiHandled')}</span>
+  </div>`;
+}
+
+/* ---------- Calls ---------- */
+function callsScreen(){
+  return `${header(T('calls'))}
+  <div class="stack">
+    <div class="card" style="padding:0;">
+      ${state.calls.length ? state.calls.map(callRow).join('') : emptyState('inbox', T('noCallsTitle'), T('noCallsBody'))}
+    </div>
+  </div>`;
+}
+function callDetailScreen(id){
+  const c = state.calls.find(x=>x.id===id);
+  if(!c) return `${header(T('callDetails'), {back:'calls'})}<div class="stack"><div class="card">${emptyState('inbox', T('noCallsTitle'), T('noCallsBody'))}</div></div>`;
+  return `${header(T('callDetails'), {back:'calls'})}
+  <div class="stack">
+    <div class="card">
+      <div class="row"><span class="muted small">${T('customer')}</span><span style="font-weight:600;">${c.caller||'—'}</span></div>
+      <div class="row"><span class="muted small">${T('date')}</span><span>${c.date}</span></div>
+      <div class="row"><span class="muted small">${T('duration')}</span><span>${c.duration}</span></div>
+      <div class="row"><span class="muted small">${T('languageUsed')}</span><span>${c.language||'—'}</span></div>
+      <div class="row"><span class="muted small">${T('outcome')}</span><span>${c.transferred?T('humanHandled'):T('aiHandled')}</span></div>
+    </div>
+  </div>`;
+}
+
+/* ---------- Bookings ---------- */
+function bookingsScreen(){
+  return `${header(T('bookings'), { right: `<button class="icon-btn" id="btnAddBooking">${icon('plus',18)}</button>` })}
+  <div class="stack">
+    <div class="card" style="padding:0;">
+      ${state.bookings.length ? state.bookings.map(bookingRow).join('') : emptyState('calendar', T('noBookingsTitle'), T('noBookingsBody'))}
+    </div>
+    <button class="btn btn-primary" id="btnAddBooking2">${T('addBooking')}</button>
+  </div>`;
+}
+function bookingRow(b){
+  return `<div class="list-item">
+    <div class="avatar">${icon('calendar',18)}</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-weight:600;font-size:14px;">${b.customer}</div>
+      <div class="small muted">${b.service} · ${b.date} ${b.time}</div>
+    </div>
+    <span class="badge neutral">${b.status}</span>
+  </div>`;
+}
+function bookingFormHtml(){
+  return `<div style="position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:flex;align-items:flex-end;" id="bookingModalBg">
+    <div class="card" style="width:100%;max-width:480px;margin:0 auto;border-radius:20px 20px 0 0;border-bottom:none;padding:20px;">
+      <h3 style="margin:0 0 14px;font-size:16px;">${T('addBooking')}</h3>
+      <form id="bookingForm">
+        <div class="field"><label>${T('customer')}</label><input required name="customer" type="text"></div>
+        <div class="field"><label>${T('service')}</label><input name="service" type="text" list="serviceList">
+          <datalist id="serviceList">${(state.business.services||[]).map(s=>`<option value="${s.name}">`).join('')}</datalist>
+        </div>
+        <div class="row" style="gap:10px;">
+          <div class="field" style="flex:1;"><label>${T('date')}</label><input required name="date" type="date"></div>
+          <div class="field" style="flex:1;"><label>${T('time')}</label><input required name="time" type="time"></div>
+        </div>
+        <div class="field"><label>${T('notes')} (${T('optional')})</label><textarea name="notes" rows="2"></textarea></div>
+        <div class="row" style="gap:10px;">
+          <button type="button" class="btn btn-secondary" id="btnCancelBooking">${T('cancel')}</button>
+          <button type="submit" class="btn btn-primary">${T('save')}</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+
+/* ---------- Summaries ---------- */
+function summariesScreen(){
+  const done = state.calls.filter(c=>c.summary);
+  return `${header(T('summaries'))}
+  <div class="stack">
+    <div class="card" style="padding:0;">
+      ${done.length ? done.map(c=>`<div class="list-item" data-nav="call-detail" data-param="${c.id}">
+        <div class="avatar">${icon('doc',18)}</div>
+        <div style="flex:1;"><div style="font-weight:600;font-size:14px;">${c.caller||'Unknown caller'}</div><div class="small muted">${c.date}</div></div>
+      </div>`).join('') : emptyState('doc', T('noSummariesTitle'), T('noSummariesBody'))}
+    </div>
+  </div>`;
+}
+
+/* ---------- Settings ---------- */
+function settingsHome(){
+  const rows = [
+    {id:'settings-account', icon:'user', label:T('account'), sub:state.user.email},
+    {id:'settings-business', icon:'building', label:T('businessInfo'), sub: state.business.businessName || T('optional')},
+    {id:'settings-ai', icon:'bot', label:T('aiAssistant')},
+    {id:'settings-phone', icon:'sim', label:T('phoneCallConnection'), sub: state.phone.connected? T('connected') : T('notConnected')},
+    {id:'settings-callsettings', icon:'mic', label:T('callSettings')},
+    {id:'settings-notifications', icon:'bell', label:T('notifications')},
+    {id:'settings-billing', icon:'card', label:T('billing'), sub: state.subscription.planId ? planName(state.subscription.planId) : T('noPlan')},
+    {id:'settings-language', icon:'globe', label:T('appLanguage'), sub: ({en:'English',de:'Deutsch',ar:'العربية'})[state.appLang]},
+    {id:'settings-security', icon:'shield', label:T('security')},
+  ];
+  return `${header(T('settings'))}
+  <div class="stack">
+    <div class="settings-group">
+      ${rows.map(r => `<div class="settings-row" data-nav="${r.id}">
+        <span class="ic">${icon(r.icon,17)}</span>
+        <div class="txt"><div class="t1">${r.label}</div>${r.sub?`<div class="t2">${r.sub}</div>`:''}</div>
+        <span class="chev">${icon('back',16)}</span>
+      </div>`).join('')}
+    </div>
+    <button class="btn btn-danger" id="btnLogout">${icon('logout',16)} ${T('logout')}</button>
+  </div>`;
+}
+
+function settingsAccount(){
+  return `${header(T('account'), {back:'settings'})}
+  <div class="stack">
+    <div class="card">
+      <div class="field"><label>${T('fullName')}</label><input id="accName" type="text" value="${state.user.name||''}"></div>
+      <div class="field"><label>${T('email')}</label><input type="email" value="${state.user.email}" disabled></div>
+      <button class="btn btn-primary" id="btnSaveAccount">${T('save')}</button>
+    </div>
+    <div class="settings-group">
+      <div class="settings-row" data-nav="settings-security"><span class="ic">${icon('shield',17)}</span><div class="txt"><div class="t1">${T('security')}</div></div><span class="chev">${icon('back',16)}</span></div>
+    </div>
+    <button class="btn btn-danger" id="btnLogout2">${icon('logout',16)} ${T('logout')}</button>
+  </div>`;
+}
+
+function settingsBusiness(){
+  const b = state.business;
+  return `${header(T('businessInfo'), {back:'settings'})}
+  <div class="stack">
+    <div class="notice info">${icon('building',16)}<span>${T('businessInfoNote')}</span></div>
+    <div class="card">
+      <div class="field"><label>${T('businessName')}</label><input name="businessName" type="text" value="${b.businessName||''}"></div>
+      <div class="row" style="gap:10px;">
+        <div class="field" style="flex:1;"><label>${T('country')}</label><input name="country" type="text" value="${b.country||''}"></div>
+        <div class="field" style="flex:1;"><label>${T('city')}</label><input name="city" type="text" value="${b.city||''}"></div>
+      </div>
+      <div class="field"><label>${T('address')}</label><input name="address" type="text" value="${b.address||''}"></div>
+      <div class="row" style="gap:10px;">
+        <div class="field" style="flex:1;"><label>${T('landlineNumber')}</label><input name="landlineNumber" type="tel" placeholder="+49 30 1234567" value="${b.landlineNumber||''}"></div>
+        <div class="field" style="flex:1;"><label>${T('mobileNumber')}</label><input name="mobileNumber" type="tel" placeholder="+49 151 2345678" value="${b.mobileNumber||''}"></div>
+      </div>
+      <div class="field"><label>${T('industry')}</label><input name="industry" type="text" value="${b.industry||''}"></div>
+      <div class="field"><label>${T('description')}</label><textarea name="description" rows="3">${b.description||''}</textarea></div>
+      <div class="field"><label>${T('openingHours')}</label><textarea name="openingHours" rows="2" placeholder="Mon–Fri 09:00–18:00">${b.openingHours||''}</textarea></div>
+      <div class="field"><label>${T('importantInfo')}</label><textarea name="importantInfo" rows="2">${b.importantInfo||''}</textarea></div>
+      <div class="field"><label>${T('contactInfo')}</label><textarea name="contactInfo" rows="2">${b.contactInfo||''}</textarea></div>
+      <button class="btn btn-primary" id="btnSaveBusiness">${T('save')}</button>
+    </div>
+
+    <div class="section-title" style="margin:4px 0 0;padding:0;">${T('businessPhotos')} <span class="muted" style="font-weight:500;">· ${(b.photos||[]).length}/11</span></div>
+    <div class="card">
+      <div class="notice info" style="margin-bottom:12px;">${icon('doc',16)}<span>${T('knowledgeIntro')}</span></div>
+      <div id="sourceList">${(b.photos||[]).map(sourceRow).join('')}</div>
+      ${(b.photos||[]).length < 11 ? `<div class="photo-add-tile" id="btnAddPhoto" style="margin-top:${(b.photos||[]).length?'12px':'0'};width:auto;height:44px;flex-direction:row;padding:0 16px;">${icon('plus',16)}<span class="n" style="font-size:13px;">${T('addPhoto')}</span></div>` : ''}
+      <input type="file" id="photoFileInput" accept="image/*" style="display:none;">
+      <p class="hint" style="margin:12px 0 0;">${T('photosLimitNote')}</p>
+      <p class="hint" style="margin:4px 0 0;">${T('photosStorageNote')}</p>
+    </div>
+
+    <div class="section-title" style="margin:4px 0 0;padding:0;">${T('services')}</div>
+    <div class="card">
+      <div id="servicesList">${(b.services||[]).map((s,i)=>serviceRow(s,i)).join('') || `<p class="hint">—</p>`}</div>
+      <button class="btn btn-secondary btn-sm" id="btnAddService" style="margin-top:${(b.services||[]).length?'10px':'0'};">${icon('plus',14)} ${T('addService')}</button>
+    </div>
+
+    <div class="section-title" style="margin:4px 0 0;padding:0;">${T('faqs')}</div>
+    <div class="card">
+      <div id="faqList">${(b.faqs||[]).map((f,i)=>faqRow(f,i)).join('') || `<p class="hint">—</p>`}</div>
+      <button class="btn btn-secondary btn-sm" id="btnAddFaq" style="margin-top:${(b.faqs||[]).length?'10px':'0'};">${icon('plus',14)} ${T('addFaq')}</button>
+    </div>
+  </div>`;
+}
+function sourceRow(p){
+  const url = sourceThumbUrls[p.id] || '';
+  return `<div class="source-row" data-sourceid="${p.id}">
+    <div class="source-thumb">${url ? `<img src="${url}" alt="${(p.name||'').replace(/"/g,'')}">` : ''}</div>
+    <div class="source-body">
+      <div class="row" style="align-items:flex-start;">
+        <span class="badge neutral">${T('sourceStatusPending')}</span>
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label>${T('extractedInfoLabel')}</label>
+        <textarea rows="2" data-sourcenote="${p.id}" placeholder="${T('extractedInfoPlaceholder')}">${p.note||''}</textarea>
+      </div>
+      <div class="source-actions">
+        <button data-replacephoto="${p.id}">${T('replacePhoto')}</button>
+        <button class="danger" data-deletephoto="${p.id}">${T('deletePhoto')}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function serviceRow(s,i){
+  return `<div class="row" style="padding:8px 0;border-bottom:1px solid var(--border);">
+    <div><div style="font-weight:600;font-size:13.5px;">${s.name}</div><div class="small muted">${s.price?`${s.price} ${s.currency||''}`:''}</div></div>
+    <button class="icon-btn" data-rmservice="${i}" style="width:28px;height:28px;">✕</button>
+  </div>`;
+}
+function faqRow(f,i){
+  return `<div style="padding:8px 0;border-bottom:1px solid var(--border);">
+    <div class="row"><div style="font-weight:600;font-size:13.5px;">${f.q}</div><button class="icon-btn" data-rmfaq="${i}" style="width:28px;height:28px;">✕</button></div>
+    <div class="small muted" style="margin-top:2px;">${f.a}</div>
+  </div>`;
+}
+
+function settingsAI(){
+  const a = state.ai;
+  return `${header(T('aiAssistant'), {back:'settings'})}
+  <div class="stack">
+    <div class="card">
+      <div class="field"><label>${T('companyCountry')}</label><input name="companyCountry" type="text" value="${state.business.country||''}" placeholder="${state.business.country?'':T('businessInfo')}"></div>
+      <div class="field"><label>${T('primaryCallLanguage')}</label>
+        <select name="primaryLang">${CALL_LANGS.map(l=>`<option value="${l.id}" ${a.primaryLang===l.id?'selected':''}>${l.native}</option>`).join('')}</select>
+      </div>
+      <p class="hint" style="margin:-8px 0 12px;">${T('primaryLangNote')}</p>
+      <div class="field"><label>${T('additionalLanguages')}</label>
+        <div class="chip-row">${CALL_LANGS.map(l=>`<span class="chip ${a.extraLangs.includes(l.id)?'on':''}" data-toggle-lang="${l.id}">${l.native}</span>`).join('')}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field"><label>${T('greeting')}</label><textarea name="greeting" rows="2" placeholder="${T('greetingPh')}">${a.greeting||''}</textarea></div>
+      <div class="field"><label>${T('communicationStyle')}</label>
+        <div class="chip-row">
+          <span class="chip ${a.style==='friendly'?'on':''}" data-style="friendly">${T('styleFriendly')}</span>
+          <span class="chip ${a.style==='formal'?'on':''}" data-style="formal">${T('styleFormal')}</span>
+          <span class="chip ${a.style==='concise'?'on':''}" data-style="concise">${T('styleConcise')}</span>
+        </div>
+      </div>
+      <div class="field"><label>${T('aiInstructions')}</label><textarea name="instructions" rows="3">${a.instructions||''}</textarea></div>
+      <div class="field"><label>${T('businessInstructions')}</label><textarea name="businessInstructions" rows="3">${a.businessInstructions||''}</textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="field" style="margin-bottom:10px;"><label>${T('handoffRules')}</label></div>
+      ${toggleRow('handoffAsked', a.handoff.asked, 'handoff-asked')}
+      ${toggleRow('handoffMissing', a.handoff.missingInfo, 'handoff-missing')}
+      ${toggleRow('handoffCustom', a.handoff.custom, 'handoff-custom')}
+    </div>
+
+    <div class="card">
+      <div class="field"><label>${T('fallbackBehavior')}</label>
+        <select name="fallback">
+          <option value="offer_human" ${a.fallback==='offer_human'?'selected':''}>${T('fallbackOfferHuman')}</option>
+          <option value="take_message" ${a.fallback==='take_message'?'selected':''}>${T('fallbackTakeMessage')}</option>
+          <option value="apologize" ${a.fallback==='apologize'?'selected':''}>${T('fallbackApologize')}</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:0;"><label>${T('bookingBehavior')}</label>
+        <select name="bookingBehavior">
+          <option value="auto" ${a.bookingBehavior==='auto'?'selected':''}>${T('bookingAuto')}</option>
+          <option value="confirm" ${a.bookingBehavior==='confirm'?'selected':''}>${T('bookingConfirm')}</option>
+          <option value="off" ${a.bookingBehavior==='off'?'selected':''}>${T('bookingOff')}</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="btnSaveAI">${T('save')}</button>
+  </div>`;
+}
+function toggleRow(labelKey, on, dataKey){
+  return `<div class="row"><span class="small">${T(labelKey)}</span><span class="switch ${on?'on':''}" data-toggle="${dataKey}"><span class="knob"></span></span></div>`;
+}
+
+function settingsPhone(){
+  const p = state.phone;
+  return `${header(T('phoneCallConnection'), {back:'settings'})}
+  <div class="stack">
+    <div class="card row">
+      <div class="row" style="gap:10px;">
+        <span style="color:${p.connected?'var(--success)':'var(--muted-2)'};">${icon('sim',20)}</span>
+        <div style="font-weight:700;">${p.connected? T('connected') : T('notConnected')}</div>
+      </div>
+      <span class="badge ${p.connected?'success':'neutral'}">${p.connected? T('connected') : T('notConnected')}</span>
+    </div>
+
+    ${!p.connected ? `<div class="notice">${icon('phone',16)}<span>${T('phoneNotConnectedNote')}</span></div>` : ''}
+
+    <div class="card">
+      <h3 style="margin:0 0 12px;font-size:14.5px;">${T('connectPhoneTitle')}</h3>
+      <div class="field"><label>${T('provider')}</label>
+        <select name="provider">
+          <option value="Telnyx" ${p.provider==='Telnyx'?'selected':''}>Telnyx</option>
+        </select>
+      </div>
+      <div class="field"><label>${T('businessPhoneNumber')}</label><input name="number" type="tel" placeholder="+49 30 1234567" value="${p.number||''}"></div>
+      <button class="btn btn-primary" id="btnSetupPhone">${T('setup')}</button>
+      ${p.connected ? `<button class="btn btn-danger" id="btnDisconnectPhone" style="margin-top:10px;">${T('disconnect')}</button>` : ''}
+    </div>
+  </div>`;
+}
+
+function settingsCallSettings(){
+  const r = state.recording;
+  return `${header(T('callSettings'), {back:'settings'})}
+  <div class="stack">
+    <div class="section-title" style="padding:0;margin:0;">${T('recordingLabel')}</div>
+    <div class="card">
+      <div class="row"><span style="font-weight:600;font-size:14px;">${T('recordingEnabled')}</span><span class="switch ${r.enabled?'on':''}" data-toggle="recording"><span class="knob"></span></span></div>
+      <p class="hint" style="margin:10px 0 12px;">${T('recordingOptionalNote')}</p>
+      <div class="field" style="margin-bottom:0;"><label>${T('consentNote')}</label><textarea name="consentNote" rows="2">${r.consentNote||''}</textarea></div>
+    </div>
+    <button class="btn btn-primary" id="btnSaveRecording">${T('save')}</button>
+  </div>`;
+}
+
+function settingsNotifications(){
+  const n = state.notifPrefs;
+  const items = [
+    ['important_call','notifImportant'], ['human_handoff','notifHandoff'], ['booking','notifBooking'],
+    ['failed_call','notifFailed'], ['usage_limit','notifUsage'], ['billing','notifBilling'], ['daily_summary','notifDaily'],
+  ];
+  return `${header(T('notifications'), {back:'settings'})}
+  <div class="stack">
+    <div class="settings-group" style="padding:4px 0;">
+      ${items.map(([key,label]) => `<div class="settings-row" style="cursor:default;"><span class="ic">${icon('bell',15)}</span><div class="txt"><div class="t1">${T(label)}</div></div><span class="switch ${n[key]?'on':''}" data-notiftoggle="${key}"><span class="knob"></span></span></div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function settingsBilling(){
+  const s = state.subscription;
+  const plan = PLANS.find(p=>p.id===s.planId);
+  return `${header(T('billing'), {back:'settings'})}
+  <div class="stack">
+    <div class="card">
+      <div class="row"><span class="muted small">${T('currentPlan')}</span><span style="font-weight:700;">${plan? planName(plan.id) : T('noPlan')}</span></div>
+      ${plan ? `
+        <div class="row"><span class="muted small">${T('price') || 'Price'}</span><span>€${plan.price.toFixed(2)}${T('perMonth')}</span></div>
+        <div class="row"><span class="muted small">${T('minutesIncluded')}</span><span>${plan.minutes}</span></div>
+        <div class="row"><span class="muted small">${T('billingPeriod')}</span><span>${s.periodStart||'—'}</span></div>
+        <div class="row"><span class="muted small">${T('paymentStatus')}</span><span class="badge neutral">${s.status}</span></div>
+        <div class="row"><span class="muted small">${T('minutesUsage')}</span><span>${s.minutesUsed||0} / ${plan.minutes}</span></div>
+      ` : ''}
+      <button class="btn btn-primary btn-sm" data-nav="settings-plans" style="margin-top:12px;width:100%;">${plan? T('upgrade') : T('choosePlan')}</button>
+    </div>
+
+    <div class="notice">${icon('card',16)}<span>${T('stripeNote')}</span></div>
+
+    ${plan ? `<button class="btn btn-danger" id="btnCancelSub">${T('cancelSub')}</button>` : ''}
+
+    <div class="section-title" style="padding:0;margin:14px 0 0;">${T('billingHistory')}</div>
+    <div class="card">${emptyState('card', T('billingHistory'), T('noBillingHistory'), true)}</div>
+  </div>`;
+}
+
+function settingsPlans(){
+  const s = state.subscription;
+  return `${header(T('plansPageTitle'), {back:'settings-billing'})}
+  <div class="stack">
+    <p class="hint" style="margin:-4px 0 4px;">${T('planFeaturesNote')}</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      ${PLANS.map(p => `
+        <div class="plan-card ${s.planId===p.id?'selected':''}">
+          <div class="row" style="align-items:flex-start;">
+            <div>
+              <div style="font-weight:700;font-size:14.5px;">${planName(p.id)}</div>
+              <div class="small muted">${p.minutes} ${T('minutesIncluded')}</div>
+            </div>
+            ${s.planId===p.id ? `<span class="badge success">${T('currentBadge')}</span>` : ''}
+          </div>
+          <div class="row" style="margin-top:10px;align-items:flex-end;">
+            <div class="price">€${p.price.toFixed(2)}<span>${T('perMonth')}</span></div>
+            ${s.planId===p.id ? `` : `<button class="btn btn-primary btn-sm" data-selectplan="${p.id}">${T('selectPlan')}</button>`}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+function settingsSecurity(){
+  return `${header(T('security'), {back:'settings'})}
+  <div class="stack">
+    <div class="notice info">${icon('shield',16)}<span>${T('activeSession')}</span></div>
+    <div class="card">
+      <div class="field"><label>${T('currentPassword')}</label><input name="cur" type="password"></div>
+      <div class="field"><label>${T('newPassword')}</label><input name="new" type="password" minlength="6"></div>
+      <button class="btn btn-primary" id="btnChangePassword">${T('changePassword')}</button>
+    </div>
+    <p class="hint">${T('demoAuthNote')}</p>
+    <button class="btn btn-danger" id="btnLogout3">${icon('logout',16)} ${T('logout')}</button>
+  </div>`;
+}
+
+/* =========================================================
+   Events
+========================================================= */
+function bindEvents(){
+  const root = document.getElementById('root');
+
+  root.querySelectorAll('[data-nav]').forEach(el=>{
+    el.addEventListener('click', ()=> nav(el.getAttribute('data-nav'), el.getAttribute('data-param')));
+  });
+  root.querySelectorAll('[data-back]').forEach(el=>{
+    el.addEventListener('click', ()=> nav(el.getAttribute('data-back')));
+  });
+  root.querySelectorAll('[data-tab]').forEach(el=>{
+    el.addEventListener('click', ()=> nav(el.getAttribute('data-tab')));
+  });
+
+  // Welcome
+  const btnStart = document.getElementById('btnWelcomeStart');
+  if(btnStart) btnStart.addEventListener('click', ()=> go('language'));
+
+  // Language select (onboarding + settings)
+  root.querySelectorAll('.lang-opt').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      setAppLang(el.getAttribute('data-lang'));
+      render();
+    });
+  });
+  const btnLangContinue = document.getElementById('btnLangContinue');
+  if(btnLangContinue) btnLangContinue.addEventListener('click', ()=> state.appLang && go('auth'));
+  const btnBackSettings = document.getElementById('btnBackSettings');
+  if(btnBackSettings) btnBackSettings.addEventListener('click', ()=> nav('settings'));
+
+  // Auth
+  const btnBackToLang = document.getElementById('btnBackToLang');
+  if(btnBackToLang) btnBackToLang.addEventListener('click', ()=>{ authForgot=false; go('language'); });
+  root.querySelectorAll('[data-authmode]').forEach(el=>{
+    el.addEventListener('click', ()=>{ authMode = el.getAttribute('data-authmode'); render(); });
+  });
+  const togglePw = document.getElementById('togglePw');
+  if(togglePw) togglePw.addEventListener('click', ()=>{
+    const pw = document.getElementById('pwField');
+    if(pw.type === 'password'){ pw.type = 'text'; togglePw.textContent = '🙈'; }
+    else { pw.type = 'password'; togglePw.textContent = '👁'; }
+  });
+  const authForm = document.getElementById('authForm');
+  if(authForm) authForm.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(authForm);
+    const email = (fd.get('email')||'').trim().toLowerCase();
+    const password = fd.get('password')||'';
+    const submitBtn = authForm.querySelector('button[type=submit]');
+    if(submitBtn) submitBtn.disabled = true;
+    try{
+      if(authMode === 'signup'){
+        const name = fd.get('name') || '';
+        const { data, error } = await sb.auth.signUp({ email, password, options: { data: { name } } });
+        if(error){ toast(errMsg(error)); return; }
+        if(!data.session){
+          toast(state.appLang==='de'?'Bitte bestätigen Sie Ihre E-Mail, um sich anzumelden.':state.appLang==='ar'?'يرجى تأكيد بريدك الإلكتروني لتسجيل الدخول.':'Please confirm your email to finish signing in.');
+          authMode = 'login'; render(); return;
+        }
+      } else {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if(error){ toast(errMsg(error)); return; }
+      }
+      state.booting = true; render();
+      await loadAllData();
+      state.booting = false;
+      nav('dashboard');
+    }catch(err){ state.booting=false; toast(errMsg(err)); render(); }
+    finally{ if(submitBtn) submitBtn.disabled = false; }
+  });
+  const btnForgot = document.getElementById('btnForgot');
+  if(btnForgot) btnForgot.addEventListener('click', ()=>{ authForgot = true; render(); });
+  const btnBackLogin = document.getElementById('btnBackLogin');
+  if(btnBackLogin) btnBackLogin.addEventListener('click', ()=>{ authForgot=false; authMode='login'; render(); });
+  const forgotForm_ = document.getElementById('forgotForm');
+  if(forgotForm_) forgotForm_.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const fd = new FormData(forgotForm_);
+    const email = (fd.get('email')||'').trim().toLowerCase();
+    try{ await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href }); }catch(err){ /* fall through to generic message regardless, so we never reveal whether an email exists */ }
+    toast(T('resetLinkSent')); authForgot=false; authMode='login'; render();
+  });
+
+  // Logout
+  ['btnLogout','btnLogout2','btnLogout3'].forEach(id=>{
+    const b = document.getElementById(id);
+    if(b) b.addEventListener('click', async ()=>{
+      await sb.auth.signOut();
+      resetToSignedOut();
+      render();
+    });
+  });
+
+  // Bookings modal
+  const openModal = ()=>{
+    let m = document.getElementById('bookingModalRoot');
+    if(!m){ m = document.createElement('div'); m.id='bookingModalRoot'; document.body.appendChild(m); }
+    m.innerHTML = bookingFormHtml();
+    document.getElementById('btnCancelBooking').addEventListener('click', ()=> m.innerHTML='');
+    document.getElementById('bookingModalBg').addEventListener('click', e=>{ if(e.target.id==='bookingModalBg') m.innerHTML=''; });
+    document.getElementById('bookingForm').addEventListener('submit', async e=>{
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const row = {
+        business_id: state.businessId, customer_name: fd.get('customer'), service: fd.get('service')||'—',
+        booking_date: fd.get('date')||null, booking_time_text: fd.get('time')||null, notes: fd.get('notes')||null, status: 'confirmed',
+      };
+      const { data, error } = await sb.from('bookings').insert(row).select('*').single();
+      if(error){ toast(errMsg(error)); return; }
+      state.bookings.unshift({ id:data.id, customer:data.customer_name, service:data.service, date:data.booking_date, time:data.booking_time_text, notes:data.notes, status:data.status });
+      m.innerHTML=''; render(); toast(T('savedChanges'));
+    });
+  };
+  const ab1 = document.getElementById('btnAddBooking'); if(ab1) ab1.addEventListener('click', openModal);
+  const ab2 = document.getElementById('btnAddBooking2'); if(ab2) ab2.addEventListener('click', openModal);
+
+  // Settings: account
+  const btnSaveAccount = document.getElementById('btnSaveAccount');
+  if(btnSaveAccount) btnSaveAccount.addEventListener('click', async ()=>{
+    const name = document.getElementById('accName').value;
+    const { error } = await sb.auth.updateUser({ data: { name } });
+    if(error){ toast(errMsg(error)); return; }
+    state.user.name = name; toast(T('savedChanges')); render();
+  });
+
+  // Settings: business
+  const btnSaveBusiness = document.getElementById('btnSaveBusiness');
+  if(btnSaveBusiness) btnSaveBusiness.addEventListener('click', async ()=>{
+    const card = btnSaveBusiness.closest('.card');
+    const vals = {};
+    card.querySelectorAll('[name]').forEach(inp=>{ vals[inp.name] = inp.value; state.business[inp.name] = inp.value; });
+    const row = {
+      name: vals.businessName||null, country: vals.country||null, city: vals.city||null, address: vals.address||null,
+      landline_number: vals.landlineNumber||null, mobile_number: vals.mobileNumber||null, industry: vals.industry||null,
+      description: vals.description||null, opening_hours: vals.openingHours||null, important_info: vals.importantInfo||null,
+      contact_info: vals.contactInfo||null,
+    };
+    const { error } = await sb.from('businesses').update(row).eq('id', state.businessId);
+    if(error){ toast(errMsg(error)); return; }
+    toast(T('savedChanges')); render();
+  });
+  async function persistServices(){
+    const { error } = await sb.from('businesses').update({ services: state.business.services }).eq('id', state.businessId);
+    if(error) toast(errMsg(error));
+  }
+  async function persistFaqs(){
+    const { error } = await sb.from('businesses').update({ faqs: state.business.faqs }).eq('id', state.businessId);
+    if(error) toast(errMsg(error));
+  }
+  const btnAddService = document.getElementById('btnAddService');
+  if(btnAddService) btnAddService.addEventListener('click', ()=>{
+    const name = prompt(T('serviceName')); if(!name) return;
+    const price = prompt(T('price')) || '';
+    const currency = prompt(T('currency')) || (state.business.currency||'EUR');
+    state.business.services = state.business.services || [];
+    state.business.services.push({name, price, currency});
+    render(); persistServices();
+  });
+  root.querySelectorAll('[data-rmservice]').forEach(el=>{
+    el.addEventListener('click', ()=>{ state.business.services.splice(+el.getAttribute('data-rmservice'),1); render(); persistServices(); });
+  });
+  const btnAddFaq = document.getElementById('btnAddFaq');
+  if(btnAddFaq) btnAddFaq.addEventListener('click', ()=>{
+    const q = prompt(T('question')); if(!q) return;
+    const a = prompt(T('answer')) || '';
+    state.business.faqs = state.business.faqs || [];
+    state.business.faqs.push({q,a});
+    render(); persistFaqs();
+  });
+  root.querySelectorAll('[data-rmfaq]').forEach(el=>{
+    el.addEventListener('click', ()=>{ state.business.faqs.splice(+el.getAttribute('data-rmfaq'),1); render(); persistFaqs(); });
+  });
+
+  // Settings: business knowledge sources (Storage-backed)
+  const photoInput = document.getElementById('photoFileInput');
+  const btnAddPhoto = document.getElementById('btnAddPhoto');
+  if(btnAddPhoto && photoInput) btnAddPhoto.addEventListener('click', ()=>{
+    if((state.business.photos||[]).length >= 11){ toast(T('photoLimitReached')); return; }
+    pendingPhotoReplaceId = null;
+    photoInput.value = '';
+    photoInput.click();
+  });
+  root.querySelectorAll('[data-replacephoto]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      pendingPhotoReplaceId = el.getAttribute('data-replacephoto');
+      if(photoInput){ photoInput.value = ''; photoInput.click(); }
+    });
+  });
+  root.querySelectorAll('[data-deletephoto]').forEach(el=>{
+    el.addEventListener('click', async ()=>{
+      const id = el.getAttribute('data-deletephoto');
+      const src = (state.business.photos||[]).find(p=>p.id===id);
+      if(!src) return;
+      const { error: delErr } = await sb.from('business_knowledge_sources').delete().eq('id', id);
+      if(delErr){ toast(errMsg(delErr)); return; }
+      await sb.storage.from(KNOWLEDGE_BUCKET).remove([src.storagePath]);
+      delete sourceThumbUrls[id];
+      state.business.photos = (state.business.photos||[]).filter(p=>p.id!==id);
+      render();
+    });
+  });
+  root.querySelectorAll('[data-sourcenote]').forEach(el=>{
+    el.addEventListener('blur', async ()=>{
+      const id = el.getAttribute('data-sourcenote');
+      const src = (state.business.photos||[]).find(p=>p.id===id);
+      if(!src) return;
+      src.note = el.value;
+      const { error } = await sb.from('business_knowledge_sources').update({ note: el.value }).eq('id', id);
+      if(error) toast(errMsg(error));
+    });
+  });
+  if(photoInput) photoInput.addEventListener('change', async ()=>{
+    const file = photoInput.files && photoInput.files[0];
+    if(!file) return;
+    if(!file.type || file.type.indexOf('image/') !== 0){ toast(T('photoTooLarge')); return; }
+    if(file.size > MAX_PHOTO_BYTES){ toast(T('photoTooLarge')); return; }
+    const ext = (file.name.split('.').pop()||'jpg').toLowerCase();
+    const path = `${state.businessId}/${(pendingPhotoReplaceId||'src')}-${Date.now()}.${ext}`;
+    try{
+      if(pendingPhotoReplaceId){
+        const idx = state.business.photos.findIndex(p=>p.id===pendingPhotoReplaceId);
+        if(idx === -1){ pendingPhotoReplaceId = null; return; }
+        const oldPath = state.business.photos[idx].storagePath;
+        const { error: upErr } = await sb.storage.from(KNOWLEDGE_BUCKET).upload(path, file, { upsert:false });
+        if(upErr){ toast(errMsg(upErr)); return; }
+        const { error: dbErr } = await sb.from('business_knowledge_sources').update({ storage_path: path, file_name: file.name, mime_type: file.type, size_bytes: file.size }).eq('id', pendingPhotoReplaceId);
+        if(dbErr){ toast(errMsg(dbErr)); return; }
+        await sb.storage.from(KNOWLEDGE_BUCKET).remove([oldPath]);
+        state.business.photos[idx] = { id: pendingPhotoReplaceId, name: file.name, note: state.business.photos[idx].note, storagePath: path };
+        const { data: signed } = await sb.storage.from(KNOWLEDGE_BUCKET).createSignedUrl(path, 3600);
+        if(signed) sourceThumbUrls[pendingPhotoReplaceId] = signed.signedUrl;
+        pendingPhotoReplaceId = null;
+      } else {
+        if(state.business.photos.length >= 11){ toast(T('photoLimitReached')); return; }
+        const { error: upErr } = await sb.storage.from(KNOWLEDGE_BUCKET).upload(path, file, { upsert:false });
+        if(upErr){ toast(errMsg(upErr)); return; }
+        const { data: row, error: dbErr } = await sb.from('business_knowledge_sources')
+          .insert({ business_id: state.businessId, storage_path: path, file_name: file.name, mime_type: file.type, size_bytes: file.size, position: state.business.photos.length })
+          .select('*').single();
+        if(dbErr){ await sb.storage.from(KNOWLEDGE_BUCKET).remove([path]); toast(T('photoLimitReached')); return; }
+        state.business.photos.push({ id: row.id, name: row.file_name, note: '', storagePath: row.storage_path });
+        const { data: signed } = await sb.storage.from(KNOWLEDGE_BUCKET).createSignedUrl(path, 3600);
+        if(signed) sourceThumbUrls[row.id] = signed.signedUrl;
+      }
+      render();
+    }catch(err){ toast(errMsg(err)); }
+  });
+
+  // Settings: AI (all fields + toggles commit together via the Save button below)
+  root.querySelectorAll('[data-toggle-lang]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const l = el.getAttribute('data-toggle-lang');
+      const idx = state.ai.extraLangs.indexOf(l);
+      if(idx>-1) state.ai.extraLangs.splice(idx,1); else state.ai.extraLangs.push(l);
+      render();
+    });
+  });
+  root.querySelectorAll('[data-style]').forEach(el=>{
+    el.addEventListener('click', ()=>{ state.ai.style = el.getAttribute('data-style'); render(); });
+  });
+  root.querySelectorAll('[data-toggle^="handoff-"]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const k = el.getAttribute('data-toggle').replace('handoff-','');
+      const map = {asked:'asked', missing:'missingInfo', custom:'custom'};
+      state.ai.handoff[map[k]] = !state.ai.handoff[map[k]];
+      render();
+    });
+  });
+  const btnSaveAI = document.getElementById('btnSaveAI');
+  if(btnSaveAI) btnSaveAI.addEventListener('click', async ()=>{
+    const cards = document.querySelectorAll('#root .card');
+    cards.forEach(card=>{
+      card.querySelectorAll('[name]').forEach(inp=>{
+        if(inp.name==='companyCountry'){ state.business.country = inp.value; }
+        else { state.ai[inp.name] = inp.value; }
+      });
+    });
+    try{
+      const [{error:bizErr}, {error:aiErr}, {error:csErr}] = await Promise.all([
+        sb.from('businesses').update({ country: state.business.country||null }).eq('id', state.businessId),
+        sb.from('ai_settings').upsert({
+          business_id: state.businessId, tone: state.ai.style, greeting_message: state.ai.greeting||null,
+          instructions: state.ai.instructions||null, business_instructions: state.ai.businessInstructions||null,
+          fallback_behavior: state.ai.fallback, booking_behavior: state.ai.bookingBehavior,
+        }, { onConflict:'business_id' }),
+        sb.from('call_settings').upsert({
+          business_id: state.businessId, handoff_ask_before: state.ai.handoff.asked,
+          handoff_missing_info: state.ai.handoff.missingInfo, handoff_custom_rule: state.ai.handoff.custom,
+        }, { onConflict:'business_id' }),
+      ]);
+      if(bizErr||aiErr||csErr){ toast(errMsg(bizErr||aiErr||csErr)); return; }
+      await sb.from('ai_languages').delete().eq('business_id', state.businessId);
+      const langRows = [{ business_id: state.businessId, language_code: state.ai.primaryLang, is_primary: true }]
+        .concat(state.ai.extraLangs.filter(l=>l!==state.ai.primaryLang).map(l=>({ business_id: state.businessId, language_code: l, is_primary: false })));
+      const { error: langErr } = await sb.from('ai_languages').insert(langRows);
+      if(langErr){ toast(errMsg(langErr)); return; }
+      toast(T('savedChanges')); render();
+    }catch(err){ toast(errMsg(err)); }
+  });
+
+  // Settings: phone
+  const btnSetupPhone = document.getElementById('btnSetupPhone');
+  if(btnSetupPhone) btnSetupPhone.addEventListener('click', async ()=>{
+    const card = btnSetupPhone.closest('.card');
+    const provider = card.querySelector('[name=provider]').value;
+    const number = card.querySelector('[name=number]').value;
+    if(!provider || !number){ toast(T('phoneNotConnectedNote')); return; }
+    // Represents the handoff point to a real telephony provider; no live connection is made here.
+    const { error } = await sb.from('phone_connections').upsert({ business_id: state.businessId, provider, phone_number: number, status: 'pending' }, { onConflict:'business_id' });
+    if(error){ toast(errMsg(error)); return; }
+    state.phone = { connected:false, provider, number };
+    toast(state.appLang==='de'?'Für eine echte Verbindung ist ein Backend-Anbieter erforderlich.':state.appLang==='ar'?'يتطلب الاتصال الفعلي مزوّد خلفية حقيقي.':'A real connection requires a live backend provider.');
+    render();
+  });
+  const btnDisconnectPhone = document.getElementById('btnDisconnectPhone');
+  if(btnDisconnectPhone) btnDisconnectPhone.addEventListener('click', async ()=>{
+    const { error } = await sb.from('phone_connections').upsert({ business_id: state.businessId, provider: state.phone.provider||'Telnyx', phone_number: null, status: 'not_connected' }, { onConflict:'business_id' });
+    if(error){ toast(errMsg(error)); return; }
+    state.phone = {connected:false, provider:'', number:''}; render();
+  });
+
+  // Settings: call settings / recording (toggle is visual until Save; Save commits both)
+  root.querySelectorAll('[data-toggle="recording"]').forEach(el=>{
+    el.addEventListener('click', ()=>{ state.recording.enabled = !state.recording.enabled; render(); });
+  });
+  const btnSaveRecording = document.getElementById('btnSaveRecording');
+  if(btnSaveRecording) btnSaveRecording.addEventListener('click', async ()=>{
+    const ta = document.querySelector('[name=consentNote]');
+    state.recording.consentNote = ta ? ta.value : state.recording.consentNote;
+    const { error } = await sb.from('recording_settings').upsert({ business_id: state.businessId, recording_enabled: state.recording.enabled, consent_message: state.recording.consentNote||null }, { onConflict:'business_id' });
+    if(error){ toast(errMsg(error)); return; }
+    toast(T('savedChanges')); render();
+  });
+
+  // Settings: notifications (each toggle persists immediately, matching the original instant-save UX)
+  root.querySelectorAll('[data-notiftoggle]').forEach(el=>{
+    el.addEventListener('click', async ()=>{
+      const k = el.getAttribute('data-notiftoggle');
+      state.notifPrefs[k] = !state.notifPrefs[k];
+      render();
+      const colMap = { important_call:'notify_on_call', human_handoff:'notify_human_handoff', booking:'notify_on_booking', failed_call:'notify_failed_call', usage_limit:'notify_usage_limit', billing:'notify_billing', daily_summary:'notify_daily_summary' };
+      const patch = { business_id: state.businessId };
+      patch[colMap[k]] = state.notifPrefs[k];
+      const { error } = await sb.from('notification_prefs').upsert(patch, { onConflict:'business_id' });
+      if(error) toast(errMsg(error));
+    });
+  });
+
+  // Settings: billing / plans
+  root.querySelectorAll('[data-selectplan]').forEach(el=>{
+    el.addEventListener('click', async ()=>{
+      const id = el.getAttribute('data-selectplan');
+      const plan = PLANS.find(p=>p.id===id);
+      const todayStr = new Date().toISOString().slice(0,10);
+      const periodEnd = new Date(); periodEnd.setMonth(periodEnd.getMonth()+1);
+      const { error: subErr } = await sb.from('subscriptions').upsert({
+        business_id: state.businessId, plan_code: id, status: 'active', included_minutes: plan.minutes,
+        price_cents: Math.round(plan.price*100), currency: 'EUR', billing_period: 'monthly',
+        current_period_start: todayStr, current_period_end: periodEnd.toISOString().slice(0,10),
+      }, { onConflict:'business_id' });
+      if(subErr){ toast(errMsg(subErr)); return; }
+      // usage_records no longer accepts client UPDATEs (deduction is trigger-only, see
+      // process_call_usage()). A new billing period always INSERTs a fresh row; if the
+      // exact same period_start already exists (e.g. re-selecting a plan same day), we
+      // leave the existing row untouched rather than attempting an update.
+      const { error: usageErr } = await sb.from('usage_records').upsert({
+        business_id: state.businessId, period_start: todayStr, period_end: periodEnd.toISOString().slice(0,10),
+        included_minutes: plan.minutes,
+      }, { onConflict:'business_id,period_start', ignoreDuplicates: true });
+      if(usageErr){ toast(errMsg(usageErr)); return; }
+      state.subscription = { planId:id, status:'active', minutesUsed:0, periodStart: todayStr };
+      toast(T('stripeNote')); render();
+    });
+  });
+  const btnCancelSub = document.getElementById('btnCancelSub');
+  if(btnCancelSub) btnCancelSub.addEventListener('click', async ()=>{
+    if(!confirm(T('cancelSub')+'?')) return;
+    const { error } = await sb.from('subscriptions').delete().eq('business_id', state.businessId);
+    if(error){ toast(errMsg(error)); return; }
+    state.subscription = { planId:null, status:'inactive', minutesUsed:0, periodStart:null }; render();
+  });
+
+  // Settings: security
+  const btnChangePassword = document.getElementById('btnChangePassword');
+  if(btnChangePassword) btnChangePassword.addEventListener('click', async ()=>{
+    const cur = document.querySelector('[name=cur]').value;
+    const nw = document.querySelector('[name=new]').value;
+    if(nw.length < 6){ toast(state.appLang==='de'?'Neues Passwort ist zu kurz':state.appLang==='ar'?'كلمة المرور الجديدة قصيرة جدًا':'New password is too short'); return; }
+    // Re-authenticate with the current password to verify it before changing to the new one.
+    const { error: reauthErr } = await sb.auth.signInWithPassword({ email: state.user.email, password: cur });
+    if(reauthErr){ toast(state.appLang==='de'?'Aktuelles Passwort ist falsch':state.appLang==='ar'?'كلمة المرور الحالية غير صحيحة':'Current password is incorrect'); return; }
+    const { error } = await sb.auth.updateUser({ password: nw });
+    if(error){ toast(errMsg(error)); return; }
+    toast(T('savedChanges'));
+  });
+}
+
+/* Boot */
+if(state.appLang){ document.documentElement.lang = state.appLang; document.documentElement.dir = state.appLang==='ar'?'rtl':'ltr'; }
+render();
+
+let authListenerReady = false;
+sb.auth.onAuthStateChange((event, session)=>{
+  if(!authListenerReady){ authListenerReady = true; return; } // initial event handled by boot() below
+  if(event === 'SIGNED_OUT'){ resetToSignedOut(); render(); return; }
+});
+
+async function boot(){
+  try{
+    const { data: { session } } = await sb.auth.getSession();
+    if(session){
+      await loadAllData();
+      state.route = 'dashboard';
+    }
+  }catch(err){
+    toast(errMsg(err));
+  }finally{
+    state.booting = false;
+    render();
+  }
+}
+boot();
+</script>
+</body>
+</html>
